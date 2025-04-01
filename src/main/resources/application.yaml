@@ -13,11 +13,19 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+    properties:
+      hibernate.jdbc.time_zone: Asia/Ho_Chi_Minh
   servlet:
     multipart:
       enabled: true
       max-file-size: 10MB
       max-request-size: 50MB
+  web:
+    cors:
+      allowed-origins: "http://localhost:5173"
+      allowed-methods: "*"
+      allowed-headers: "*"
+      allow-credentials: true
 
 cloudinary:
   cloud-name: dx3mcnnfa

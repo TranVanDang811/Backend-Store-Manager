@@ -14,9 +14,6 @@ public interface ShippingMapper {
     @Mapping(target = "orderId", source = "order.id")
     ShippingResponse toResponse(Shipping shipping);
 
-    @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updateAt", ignore = true)
     Shipping toEntity(ShippingRequest request);
 }

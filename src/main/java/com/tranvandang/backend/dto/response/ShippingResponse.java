@@ -19,5 +19,5 @@ public class ShippingResponse {
     ShippingMethod shippingMethod;
     ShippingStatus status;
     Date createdAt;
-    Date updatedAt;
+    Date updateAt;
 }

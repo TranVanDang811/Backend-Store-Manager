@@ -1,8 +1,10 @@
 package com.tranvandang.backend.service;
 
 import com.tranvandang.backend.dto.request.ShippingRequest;
+import com.tranvandang.backend.dto.response.PaymentResponse;
 import com.tranvandang.backend.dto.response.ShippingResponse;
 import com.tranvandang.backend.entity.Orders;
+import com.tranvandang.backend.entity.Payment;
 import com.tranvandang.backend.entity.Shipping;
 import com.tranvandang.backend.mapper.ShippingMapper;
 import com.tranvandang.backend.repository.OrderRepository;
@@ -50,6 +52,12 @@ public class ShippingService {
     public ShippingResponse getShippingById(String shippingId) {
         Shipping shipping = shippingRepository.findById(shippingId)
                 .orElseThrow(() -> new RuntimeException("Shipping not found"));
+        return shippingMapper.toResponse(shipping);
+    }
+
+    public ShippingResponse getShippingByOrderId(String orderId) {
+        Shipping shipping = shippingRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new RuntimeException("Shipping not found for orderId: " + orderId));
         return shippingMapper.toResponse(shipping);
     }
 

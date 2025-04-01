@@ -1,6 +1,7 @@
 package com.tranvandang.backend.controller;
 
 import com.tranvandang.backend.dto.request.ShippingRequest;
+import com.tranvandang.backend.dto.response.PaymentResponse;
 import com.tranvandang.backend.dto.response.ShippingResponse;
 import com.tranvandang.backend.service.ShippingService;
 import com.tranvandang.backend.util.ShippingStatus;
@@ -33,6 +34,11 @@ public class ShippingController {
         return ResponseEntity.ok(shippingService.getShippingById(shippingId));
     }
 
+    @GetMapping("/order/{orderId}")
+    public ResponseEntity<ShippingResponse> getShippingByOrderId(@PathVariable String orderId) {
+        return ResponseEntity.ok(shippingService.getShippingByOrderId(orderId));
+    }
+
     // 3️⃣ Lấy danh sách đơn vận chuyển (có phân trang)
     @GetMapping
     public ResponseEntity<Page<ShippingResponse>> getAllShippings(Pageable pageable) {
@@ -40,7 +46,7 @@ public class ShippingController {
     }
 
     // 4️⃣ Cập nhật trạng thái vận chuyển
-    @PatchMapping("/{shippingId}/status")
+    @PatchMapping("/{shippingId}")
     public ResponseEntity<ShippingResponse> updateShippingStatus(
             @PathVariable String shippingId,
             @RequestParam ShippingStatus status) {
