@@ -4,7 +4,10 @@ package com.tranvandang.backend.controller;
 import com.tranvandang.backend.dto.request.ApiResponse;
 import com.tranvandang.backend.dto.request.UserCreationRequest;
 import com.tranvandang.backend.dto.request.UserUpdateRequest;
+import com.tranvandang.backend.dto.response.ProductResponse;
 import com.tranvandang.backend.dto.response.UserResponse;
+import com.tranvandang.backend.entity.Product;
+import com.tranvandang.backend.entity.User;
 import com.tranvandang.backend.service.UserService;
 import com.tranvandang.backend.util.UserStatus;
 import jakarta.validation.Valid;
@@ -13,6 +16,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -35,13 +39,24 @@ public class UserController {
     }
 
     @GetMapping
-    ApiResponse<List<UserResponse>> getUser() {
+    ApiResponse<Page<UserResponse>> getUsers(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "5") int size) {
+
         var authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.info("Username: {}", authentication.getName());
         authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));
-        return ApiResponse.<List<UserResponse>>builder()
-                .result(userService.getUser())
+
+        return ApiResponse.<Page<UserResponse>>builder()
+                .result(userService.getUsers(page - 1, size))
                 .build();
+    }
+
+    @GetMapping("/search")
+    public Page<User> searchUsers(
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        return userService.searchUsers(keyword, page - 1, size);
     }
 
     @GetMapping("/{userId}")

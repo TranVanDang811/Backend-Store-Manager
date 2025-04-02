@@ -4,8 +4,10 @@ package com.tranvandang.backend.service;
 import com.tranvandang.backend.constant.PredefinedRole;
 import com.tranvandang.backend.dto.request.UserCreationRequest;
 import com.tranvandang.backend.dto.request.UserUpdateRequest;
+import com.tranvandang.backend.dto.response.ProductResponse;
 import com.tranvandang.backend.dto.response.UserResponse;
 import com.tranvandang.backend.entity.Address;
+import com.tranvandang.backend.entity.Product;
 import com.tranvandang.backend.mapper.AddressMapper;
 import com.tranvandang.backend.repository.AddressRepository;
 import com.tranvandang.backend.entity.Role;
@@ -23,6 +25,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -116,10 +121,18 @@ public class UserService {
     }
 
 
+
     @PreAuthorize("hasRole('ADMIN')")
-    public List<UserResponse> getUser() {
-        log.info("In method get Users");
-        return userRepository.findAll().stream().map(userMapper::toUserResponse).toList();
+    public Page<UserResponse> getUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return userRepository.findAll(pageable)
+                .map(userMapper::toUserResponse);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<User> searchUsers(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return userRepository.findByFirstNameContainingIgnoreCase(keyword, pageable);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

@@ -1,5 +1,6 @@
 package com.tranvandang.backend.util;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum UserStatus {
@@ -10,5 +11,7 @@ public enum UserStatus {
     INACTIVE,
 
     @JsonProperty("none")
-    NONE
+    NONE;
+
+
 }

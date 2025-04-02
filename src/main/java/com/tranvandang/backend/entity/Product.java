@@ -45,10 +45,12 @@ public class Product extends AbstractEntity {
     Set<ProductImage> images = new HashSet<>();
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "brand_id", nullable = false)
     Brand brand; // Thương hiệu điện thoại
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "category_id", nullable = false)
     Category category;  // Danh mục sản phẩm
 
