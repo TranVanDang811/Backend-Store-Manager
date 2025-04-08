@@ -79,23 +79,26 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-    @PostAuthorize("returnObject.username == authentication.name")
+    @PostAuthorize("hasRole('ADMIN') or returnObject.username == authentication.name")
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
+        // Lấy thông tin người dùng từ SecurityContextHolder
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
         User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        userMapper.updateUser(user, request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-
-        var roles = roleRepository.findAllById(request.getRoles());
-        user.setRoles(new HashSet<>(roles));
-
-        // Cập nhật danh sách địa chỉ
-        if (request.getAddresses() != null) {
-            Set<Address> addresses = addressMapper.toEntitySet(request.getAddresses());
-            addresses.forEach(address -> address.setUser(user)); // Gán User vào Address
-            user.getAddresses().clear(); // Xóa danh sách cũ
-            user.getAddresses().addAll(addresses); // Thêm danh sách mới
+        // Kiểm tra nếu người dùng đang cố gắng sửa chính họ
+        if (!user.getUsername().equals(authentication.getName()) && !authentication.getAuthorities().stream().anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"))) {
+            throw new AppException(ErrorCode.FORBIDDEN);  // Nếu không phải ADMIN hoặc chính mình, từ chối
         }
+
+        // Cập nhật thông tin người dùng từ request
+        userMapper.updateUser(user, request);
+
+        // Mã hóa lại mật khẩu nếu có thay đổi mật khẩu
+        if (request.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
@@ -110,7 +113,7 @@ public class UserService {
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
-
+    @PostAuthorize("hasRole('ADMIN') or returnObject.username == authentication.name")
     public UserResponse getMyInfo() {
         var context = SecurityContextHolder.getContext();
         String name = context.getAuthentication().getName();
@@ -150,6 +153,55 @@ public class UserService {
     private User getUserById(String userId) {
         return userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
+
+    public boolean isOwner(String authenticatedUsername, String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        return user.getUsername().equals(authenticatedUsername);
+    }
+
+    @PostAuthorize("hasRole('ADMIN') or returnObject.username == authentication.name")
+    public UserResponse changePassword(String userId, String oldPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        // Kiểm tra nếu yêu cầu là thay đổi mật khẩu của chính mình, kiểm tra mật khẩu cũ
+        if (user.getUsername().equals(authentication.getName())) {
+            if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+                throw new AppException(ErrorCode.INVALID_PASSWORD);
+            }
+        }
+
+        // Mã hóa mật khẩu mới và lưu
+        user.setPassword(passwordEncoder.encode(newPassword));
+
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public UserResponse updateRole(String userId, String roleName) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
+
+        Set<Role> newRoles = new HashSet<>();
+        newRoles.add(role);
+        user.setRoles(newRoles);
+
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
+
+    public boolean isUsernameExist(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
+    public boolean isEmailExist(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
 
 
 }

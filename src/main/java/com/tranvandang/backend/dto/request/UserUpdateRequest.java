@@ -22,9 +22,8 @@ import java.util.Set;
 public class UserUpdateRequest {
     String firstName;
     String lastName;
+    String username;
     String password;
     String phone;
     String email;
-    List<String> roles;
-    Set<AddressAddRequest> addresses;
 }

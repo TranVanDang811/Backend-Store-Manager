@@ -18,6 +18,6 @@ public interface UserMapper {
 
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "roles", ignore = true) // Bỏ qua roles khi update
-//    @Mapping(target = "addresses", ignore = true) // Không cập nhật địa chỉ khi update
+    @Mapping(target = "addresses", ignore = true) // Không cập nhật địa chỉ khi update
     void updateUser(@MappingTarget User user, UserUpdateRequest request);
 }

@@ -19,7 +19,11 @@ public enum ErrorCode {
     INVALID_JSON(400,"Invalid JSON format", HttpStatus.BAD_REQUEST),
     PRODUCT_NOT_EXISTED(404,"Product not existed", HttpStatus.NOT_FOUND),
     ORDER_NOT_EXISTED(404,"Order not existed", HttpStatus.NOT_FOUND),
-    PAYMENT_NOT_EXISTED(404,"Payment not existed", HttpStatus.NOT_FOUND)
+    PAYMENT_NOT_EXISTED(404,"Payment not existed", HttpStatus.NOT_FOUND),
+    ADDRESS_NOT_EXISTED(404,"Address not existed", HttpStatus.NOT_FOUND),
+    FORBIDDEN(403,"You do not have permission to perform this action", HttpStatus.FORBIDDEN),
+    INVALID_PASSWORD(400,"Incorrect old password provided", HttpStatus.BAD_REQUEST),
+    ROLE_NOT_EXISTED(400,"Role does not exist", HttpStatus.BAD_REQUEST)
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
