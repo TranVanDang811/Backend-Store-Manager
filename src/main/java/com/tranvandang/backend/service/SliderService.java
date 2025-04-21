@@ -4,6 +4,7 @@ package com.tranvandang.backend.service;
 
 import com.tranvandang.backend.dto.request.SliderRequest;
 import com.tranvandang.backend.dto.response.SliderResponse;
+import com.tranvandang.backend.entity.CloudinaryUploadResult;
 import com.tranvandang.backend.entity.Slider;
 import com.tranvandang.backend.mapper.SliderMapper;
 import com.tranvandang.backend.repository.SliderRepository;
@@ -27,10 +28,12 @@ public class SliderService {
     public SliderResponse create(SliderRequest request, MultipartFile image) {
         Slider slider = sliderMapper.toSlider(request);
 
+
         if (image != null && !image.isEmpty()) {
-            String imageUrl = cloudinaryService.uploadImage(image);
-            if (imageUrl != null && !imageUrl.isEmpty()) {
-                slider.setImageUrl(imageUrl);
+            CloudinaryUploadResult uploadResult = cloudinaryService.uploadImage(image);
+            if (uploadResult != null && uploadResult.getUrl() != null) {
+                slider.setImageUrl(uploadResult.getUrl());
+                 slider.setPublicId(uploadResult.getPublicId());
             }
         }
 

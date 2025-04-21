@@ -5,6 +5,7 @@ package com.tranvandang.backend.service;
 import com.tranvandang.backend.dto.request.BrandRequest;
 import com.tranvandang.backend.dto.response.BrandResponse;
 import com.tranvandang.backend.entity.Brand;
+import com.tranvandang.backend.entity.CloudinaryUploadResult;
 import com.tranvandang.backend.mapper.BrandMapper;
 import com.tranvandang.backend.repository.BrandRepository;
 import lombok.AccessLevel;
@@ -28,9 +29,10 @@ public class BrandService {
         Brand brand = brandMapper.toBrand(request);
 
         if (image != null && !image.isEmpty()) {
-            String imageUrl = cloudinaryService.uploadImage(image);
-            if (imageUrl != null && !imageUrl.isEmpty()) {
-                brand.setLogoUrl(imageUrl);
+            CloudinaryUploadResult uploadResult = cloudinaryService.uploadImage(image);
+            if (uploadResult != null && uploadResult.getUrl() != null) {
+                brand.setLogoUrl(uploadResult.getUrl());
+                brand.setPublicId(uploadResult.getPublicId());
             }
         }
 

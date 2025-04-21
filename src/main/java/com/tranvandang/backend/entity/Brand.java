@@ -21,7 +21,7 @@ public class Brand {
     String name;  // Tên thương hiệu
 
     String logoUrl;  // Logo thương hiệu
-
+    String publicId;
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL, orphanRemoval = true)
     Set<Product> products = new HashSet<>();
 

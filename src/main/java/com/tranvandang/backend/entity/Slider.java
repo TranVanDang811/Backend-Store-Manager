@@ -18,6 +18,7 @@ import lombok.experimental.FieldDefaults;
 public class Slider extends AbstractEntity {
 
     String imageUrl;
+    String publicId;
     String title;
     String description;
 

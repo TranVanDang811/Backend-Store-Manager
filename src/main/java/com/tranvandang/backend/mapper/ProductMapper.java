@@ -2,6 +2,7 @@ package com.tranvandang.backend.mapper;
 
 import com.tranvandang.backend.dto.request.ProductImageRequest;
 import com.tranvandang.backend.dto.request.ProductRequest;
+import com.tranvandang.backend.dto.request.ProductUpdateRequest;
 import com.tranvandang.backend.dto.response.BrandResponse;
 import com.tranvandang.backend.dto.response.CategoryResponse;
 import com.tranvandang.backend.dto.response.ProductImageResponse;
@@ -12,6 +13,7 @@ import com.tranvandang.backend.entity.Product;
 import com.tranvandang.backend.entity.ProductImage;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 import java.util.List;
 import java.util.Set;
@@ -29,6 +31,7 @@ public interface ProductMapper {
     @Mapping(target = "category", source = "category")
     ProductResponse toProductResponse(Product product);
 
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "imageUrl", source = "imageUrl") // Dùng đúng tên thuộc tính
     ProductImageResponse toProductImageResponse(ProductImage image);
 
@@ -39,4 +42,7 @@ public interface ProductMapper {
 
     @Mapping(target = "name", source = "name")
     CategoryResponse toCategoryResponse(Category category);
+
+    void updateProductFromRequest(ProductUpdateRequest request, @MappingTarget Product product);
+
 }

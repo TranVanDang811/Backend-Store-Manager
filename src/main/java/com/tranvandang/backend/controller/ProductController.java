@@ -4,6 +4,8 @@ package com.tranvandang.backend.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tranvandang.backend.dto.request.ApiResponse;
 import com.tranvandang.backend.dto.request.ProductRequest;
+import com.tranvandang.backend.dto.request.ProductUpdateRequest;
+import com.tranvandang.backend.dto.request.UserUpdateRequest;
 import com.tranvandang.backend.dto.response.ProductResponse;
 import com.tranvandang.backend.dto.response.UserResponse;
 import com.tranvandang.backend.entity.Product;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -51,29 +54,39 @@ public class ProductController {
                 .build();
     }
 
-    @GetMapping("/by-brand")
-    public ResponseEntity<List<ProductResponse>> getProductsByBrand(@RequestParam String brand) {
-        return ResponseEntity.ok(productService.getProductsByBrand(brand));
-    }
-
-    @GetMapping("/by-category")
-    public ResponseEntity<List<ProductResponse>> getProductsByCategory(@RequestParam String category) {
-        return ResponseEntity.ok(productService.getProductsByCategory(category));
+    // Cập nhật thông tin user theo id
+    @PutMapping("/{productId}")
+    ProductResponse updateUser(@PathVariable String productId, @RequestBody ProductUpdateRequest request) {
+        return productService.updateProduct(productId, request);
     }
 
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    ApiResponse<Page<ProductResponse>> getProducts(
+    public ApiResponse<Page<ProductResponse>> getProducts(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "5") int size) {
-
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String categoryName,
+            @RequestParam(required = false) String brandName,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String sortByPrice,       // ASC | DESC
+            @RequestParam(required = false) String sortByName,        // ASC | DESC
+            @RequestParam(required = false) String sortByCreatedAt    // ASC | DESC
+    ) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));
 
+        Page<ProductResponse> products = productService.getProducts(
+                categoryName,brandName,sortByPrice,sortByName, sortByCreatedAt, status,page - 1, size
+
+
+        );
+
         return ApiResponse.<Page<ProductResponse>>builder()
-                .result(productService.getProducts(page - 1, size))
+                .result(products)
                 .build();
     }
+
 
     @GetMapping("/search")
     public Page<Product> searchProducts(
@@ -89,10 +102,27 @@ public class ProductController {
     }
 
     @DeleteMapping("/{productId}")
-    String deleteProduct(@PathVariable String productId) {
+    ApiResponse<Void>deleteProduct(@PathVariable String productId) {
         productService.deleteProduct(productId);
-        return "Product has been deleted";
+        return ApiResponse.<Void>builder().message("Delete successfully").build();
     }
+
+    @GetMapping("/{id}/related")
+    public ResponseEntity<List<ProductResponse>> getRelated(@PathVariable String id) {
+        return ResponseEntity.ok(productService.getRelatedProducts(id));
+    }
+
+    @DeleteMapping("/bulk")
+    public ResponseEntity<Void> deleteMany(@RequestBody List<String> ids) {
+        productService.deleteProducts(ids);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/statistics")
+    public ResponseEntity<Map<String, Object>> getStats() {
+        return ResponseEntity.ok(productService.getProductStatistics());
+    }
+
 
     @PatchMapping("/{productId}")
     public ApiResponse<ProductResponse> changerStatus(

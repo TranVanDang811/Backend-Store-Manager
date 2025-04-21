@@ -34,8 +34,8 @@ cloudinary:
 
 jwt:
   signerKey: "5WoxGcesYyP6K3ewuX0ub/rNJmRaIXU4cxzugMlnzFoco0QVHaPv2nMxWY8Bhi03"
-  valid-duration: 3600 #in second
-  refreshable-duration: 360000 # in seconds
+  valid-duration: 1800  #in second
+  refreshable-duration: 604800 # in seconds
 
 logging:
   level:

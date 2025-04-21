@@ -23,7 +23,12 @@ public enum ErrorCode {
     ADDRESS_NOT_EXISTED(404,"Address not existed", HttpStatus.NOT_FOUND),
     FORBIDDEN(403,"You do not have permission to perform this action", HttpStatus.FORBIDDEN),
     INVALID_PASSWORD(400,"Incorrect old password provided", HttpStatus.BAD_REQUEST),
-    ROLE_NOT_EXISTED(400,"Role does not exist", HttpStatus.BAD_REQUEST)
+    ROLE_NOT_EXISTED(400,"Role does not exist", HttpStatus.BAD_REQUEST),
+    UPLOAD_FAILED(400,"Image upload failed", HttpStatus.BAD_REQUEST),
+    RESOURCE_NOT_FOUND(404,"Image not found", HttpStatus.NOT_FOUND),
+    SERVER_ERROR(111,"Error deleting photos on Cloudinary",HttpStatus.INTERNAL_SERVER_ERROR),
+    CANNOT_DELETE_THUMBNAIL(400,"Cannot delete profile picture. Please update your profile picture first.",HttpStatus.BAD_REQUEST),
+    INVALID_STATUS(404,"INVALID STATUS",HttpStatus.NOT_FOUND)
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

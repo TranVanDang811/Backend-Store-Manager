@@ -79,8 +79,12 @@ public class AuthenticationService {
         if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
 
         var token = generateToken(user);
+        var refreshToken = generateRefreshToken(user);
 
-        return AuthenticationResponse.builder().token(token).authenticated(true).build();
+        return AuthenticationResponse.builder()
+                .token(token)
+                .refreshToken(refreshToken)
+                .authenticated(true).build();
     }
 
     // Đăng xuất và vô hiệu hóa token
@@ -138,9 +142,34 @@ public class AuthenticationService {
         var user =
                 userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
         var token = generateToken(user);
-
-        return AuthenticationResponse.builder().token(token).authenticated(true).build();
+        var refreshToken = generateRefreshToken(user);
+        return AuthenticationResponse.builder().token(token).refreshToken(refreshToken).authenticated(true).build();
     }
+
+
+    private String generateRefreshToken(User user) {
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+                .subject(user.getUsername())
+                .issuer("backend.com")
+                .issueTime(new Date())
+                .expirationTime(Date.from(Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS)))
+                .jwtID(UUID.randomUUID().toString())
+                .claim("scope", buildScope(user))
+                .build();
+
+        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
+
+        JWSObject jwsObject = new JWSObject(header, payload);
+        try {
+            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
+            return jwsObject.serialize();
+        } catch (JOSEException e) {
+            log.error("Cannot create refresh token", e);
+            throw new RuntimeException(e);
+        }
+    }
+
 
     // tao token
     private String generateToken(User user) {
@@ -150,8 +179,7 @@ public class AuthenticationService {
                 .subject(user.getUsername()) // dai dien nguoi dang nhap
                 .issuer("backend.com") // dang nhap tu ai
                 .issueTime(new Date()) // thoi gian tao
-                .expirationTime(new Date(
-                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli())) // token thoi han
+                .expirationTime(Date.from(Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS)))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
                 .build();
