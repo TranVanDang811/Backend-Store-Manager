@@ -1,8 +1,6 @@
 package com.tranvandang.backend.entity;
 
 
-import java.util.UUID;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 

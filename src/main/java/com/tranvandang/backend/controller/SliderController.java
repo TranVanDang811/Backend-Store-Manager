@@ -2,13 +2,10 @@ package com.tranvandang.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tranvandang.backend.dto.request.ApiResponse;
-import com.tranvandang.backend.dto.request.BrandRequest;
 import com.tranvandang.backend.dto.request.SliderRequest;
-import com.tranvandang.backend.dto.response.BrandResponse;
 import com.tranvandang.backend.dto.response.SliderResponse;
 import com.tranvandang.backend.exception.AppException;
 import com.tranvandang.backend.exception.ErrorCode;
-import com.tranvandang.backend.service.BrandService;
 import com.tranvandang.backend.service.SliderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

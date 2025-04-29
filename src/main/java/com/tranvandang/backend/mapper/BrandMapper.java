@@ -2,7 +2,6 @@ package com.tranvandang.backend.mapper;
 
 
 import com.tranvandang.backend.dto.request.BrandRequest;
-import com.tranvandang.backend.dto.request.RoleRequest;
 import com.tranvandang.backend.dto.response.BrandResponse;
 
 import com.tranvandang.backend.entity.Brand;

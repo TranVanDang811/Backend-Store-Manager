@@ -1,6 +1,7 @@
 package com.tranvandang.backend.service;
 
 import com.tranvandang.backend.constant.PredefinedRole;
+import com.tranvandang.backend.dto.request.ProductFilterRequest;
 import com.tranvandang.backend.dto.request.ProductRequest;
 import com.tranvandang.backend.dto.request.ProductUpdateRequest;
 import com.tranvandang.backend.dto.response.ProductResponse;
@@ -102,62 +103,70 @@ public class ProductService {
     }
 
 
-    public Page<ProductResponse> getProducts(
-            String categoryName,
-            String brandName,
-            String sortByPrice,
-            String sortByName,
-            String sortByCreatedAt,
-            String status,
-            int page,
-            int size) {
-
+    public Page<ProductResponse> getProducts(ProductFilterRequest request) {
         List<Sort.Order> orders = new ArrayList<>();
 
-        if ("ASC".equalsIgnoreCase(sortByPrice)) orders.add(Sort.Order.asc("price"));
-        if ("DESC".equalsIgnoreCase(sortByPrice)) orders.add(Sort.Order.desc("price"));
+        // Handle sorting
+        Optional.ofNullable(request.getSortByPrice())
+                .map(String::toUpperCase)
+                .ifPresent(sort -> orders.add(
+                        "ASC".equals(sort) ? Sort.Order.asc("price") : Sort.Order.desc("price")
+                ));
 
-        if ("ASC".equalsIgnoreCase(sortByName)) orders.add(Sort.Order.asc("name"));
-        if ("DESC".equalsIgnoreCase(sortByName)) orders.add(Sort.Order.desc("name"));
+        Optional.ofNullable(request.getSortByName())
+                .map(String::toUpperCase)
+                .ifPresent(sort -> orders.add(
+                        "ASC".equals(sort) ? Sort.Order.asc("name") : Sort.Order.desc("name")
+                ));
 
-        if ("ASC".equalsIgnoreCase(sortByCreatedAt)) orders.add(Sort.Order.asc("createdAt"));
-        if ("DESC".equalsIgnoreCase(sortByCreatedAt)) orders.add(Sort.Order.desc("createdAt"));
+        Optional.ofNullable(request.getSortByCreatedAt())
+                .map(String::toUpperCase)
+                .ifPresent(sort -> orders.add(
+                        "ASC".equals(sort) ? Sort.Order.asc("createdAt") : Sort.Order.desc("createdAt")
+                ));
 
         Pageable pageable = orders.isEmpty()
-                ? PageRequest.of(page, size)
-                : PageRequest.of(page, size, Sort.by(orders));
+                ? PageRequest.of(request.getPage(), request.getSize())
+                : PageRequest.of(request.getPage(), request.getSize(), Sort.by(orders));
 
-        Page<Product> productPage;
-
+        // Parse status
         ProductStatus productStatus = null;
-        if (status != null) {
+        if (request.getStatus() != null) {
             try {
-                productStatus = ProductStatus.valueOf(status.toUpperCase());
+                productStatus = ProductStatus.valueOf(request.getStatus().toUpperCase());
             } catch (IllegalArgumentException e) {
-                throw new AppException(ErrorCode.INVALID_STATUS); // hoặc return rỗng tuỳ anh
+                throw new AppException(ErrorCode.INVALID_STATUS);
             }
         }
 
-        if (categoryName != null && brandName != null && productStatus != null) {
-            productPage = productRepository.findByCategory_NameAndBrand_NameAndStatus(categoryName, brandName, productStatus, pageable);
-        } else if (categoryName != null && productStatus != null) {
-            productPage = productRepository.findByCategory_NameAndStatus(categoryName, productStatus, pageable);
-        } else if (brandName != null && productStatus != null) {
-            productPage = productRepository.findByBrand_NameAndStatus(brandName, productStatus, pageable);
-        } else if (productStatus != null) {
-            productPage = productRepository.findByStatus(productStatus, pageable);
-        } else if (categoryName != null && brandName != null) {
-            productPage = productRepository.findByCategory_NameAndBrand_Name(categoryName, brandName, pageable);
-        } else if (categoryName != null) {
-            productPage = productRepository.findByCategory_Name(categoryName, pageable);
-        } else if (brandName != null) {
-            productPage = productRepository.findByBrand_Name(brandName, pageable);
-        } else {
-            productPage = productRepository.findAll(pageable);
-        }
+        String categoryName = request.getCategoryName();
+        String brandName = request.getBrandName();
+
+        Page<Product> productPage = findProductByFilters(categoryName, brandName, productStatus, pageable);
 
         return productPage.map(productMapper::toProductResponse);
     }
+
+    private Page<Product> findProductByFilters(String categoryName, String brandName, ProductStatus status, Pageable pageable) {
+        if (categoryName != null && brandName != null && status != null) {
+            return productRepository.findByCategory_NameAndBrand_NameAndStatus(categoryName, brandName, status, pageable);
+        } else if (categoryName != null && status != null) {
+            return productRepository.findByCategory_NameAndStatus(categoryName, status, pageable);
+        } else if (brandName != null && status != null) {
+            return productRepository.findByBrand_NameAndStatus(brandName, status, pageable);
+        } else if (status != null) {
+            return productRepository.findByStatus(status, pageable);
+        } else if (categoryName != null && brandName != null) {
+            return productRepository.findByCategory_NameAndBrand_Name(categoryName, brandName, pageable);
+        } else if (categoryName != null) {
+            return productRepository.findByCategory_Name(categoryName, pageable);
+        } else if (brandName != null) {
+            return productRepository.findByBrand_Name(brandName, pageable);
+        } else {
+            return productRepository.findAll(pageable);
+        }
+    }
+
 
 
 
@@ -217,7 +226,7 @@ public class ProductService {
 
         return relatedProducts.stream()
                 .map(productMapper::toProductResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Map<String, Object> getProductStatistics() {

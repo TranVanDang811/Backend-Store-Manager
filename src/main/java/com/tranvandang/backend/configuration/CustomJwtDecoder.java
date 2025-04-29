@@ -6,7 +6,6 @@ package com.tranvandang.backend.configuration;
 import com.nimbusds.jose.JOSEException;
 import com.tranvandang.backend.dto.request.IntrospectRequest;
 import com.tranvandang.backend.service.AuthenticationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -28,7 +27,7 @@ public class CustomJwtDecoder implements JwtDecoder {
     private String signerKey;
 
     // Inject service AuthenticationService để gọi API introspection
-    @Autowired
+
     private AuthenticationService authenticationService;
 
     // Đối tượng NimbusJwtDecoder dùng để giải mã JWT, sẽ được khởi tạo khi cần

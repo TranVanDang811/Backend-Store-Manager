@@ -1,8 +1,5 @@
 package com.tranvandang.backend.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tranvandang.backend.entity.Brand;
-import com.tranvandang.backend.entity.ProductImage;
 import com.tranvandang.backend.util.ProductStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

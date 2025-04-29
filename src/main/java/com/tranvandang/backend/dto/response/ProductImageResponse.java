@@ -1,6 +1,5 @@
 package com.tranvandang.backend.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

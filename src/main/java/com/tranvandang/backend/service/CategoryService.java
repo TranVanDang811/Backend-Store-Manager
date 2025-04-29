@@ -1,12 +1,8 @@
 package com.tranvandang.backend.service;
 
 import com.tranvandang.backend.dto.request.CategoryRequest;
-import com.tranvandang.backend.dto.request.PermissionRequest;
-import com.tranvandang.backend.dto.response.BrandResponse;
 import com.tranvandang.backend.dto.response.CategoryResponse;
-import com.tranvandang.backend.dto.response.PermissionResponse;
 import com.tranvandang.backend.entity.Category;
-import com.tranvandang.backend.entity.Permission;
 import com.tranvandang.backend.mapper.CategoryMapper;
 import com.tranvandang.backend.repository.CategoryRepository;
 import lombok.AccessLevel;

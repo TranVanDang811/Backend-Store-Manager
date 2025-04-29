@@ -1,6 +1,5 @@
 package com.tranvandang.backend.entity;
 
-import jakarta.persistence.Entity;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

@@ -1,6 +1,5 @@
 package com.tranvandang.backend.dto.request;
 
-import com.tranvandang.backend.entity.ProductImage;
 import com.tranvandang.backend.util.ProductStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

@@ -1,18 +1,13 @@
 package com.tranvandang.backend.mapper;
 
-import com.tranvandang.backend.dto.request.CartItemRequest;
-import com.tranvandang.backend.dto.request.CartRequest;
 import com.tranvandang.backend.dto.response.CartItemResponse;
 import com.tranvandang.backend.dto.response.CartResponse;
 import com.tranvandang.backend.entity.Cart;
 import com.tranvandang.backend.entity.CartItem;
-import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Mapper(componentModel = "spring") // Đánh dấu interface này là một Mapper của MapStruct và Spring sẽ quản lý bean này

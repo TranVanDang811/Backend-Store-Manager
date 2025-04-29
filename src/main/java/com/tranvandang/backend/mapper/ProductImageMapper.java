@@ -4,7 +4,6 @@ import com.tranvandang.backend.dto.request.ProductImageRequest;
 import com.tranvandang.backend.dto.response.ProductImageResponse;
 import com.tranvandang.backend.entity.ProductImage;
 import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface ProductImageMapper {

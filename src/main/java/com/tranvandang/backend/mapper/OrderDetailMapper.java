@@ -1,13 +1,9 @@
 package com.tranvandang.backend.mapper;
 
-import com.tranvandang.backend.dto.request.OrderDetailRequest;
 import com.tranvandang.backend.dto.response.OrderDetailResponse;
 import com.tranvandang.backend.entity.OrderDetail;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
-
-
 
 
 @Mapper(componentModel = "spring")

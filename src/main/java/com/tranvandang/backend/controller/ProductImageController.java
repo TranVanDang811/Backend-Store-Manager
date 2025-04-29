@@ -1,9 +1,7 @@
 package com.tranvandang.backend.controller;
 
 import com.tranvandang.backend.dto.request.ApiResponse;
-import com.tranvandang.backend.dto.request.ProductImageRequest;
 import com.tranvandang.backend.dto.response.ProductImageResponse;
-import com.tranvandang.backend.dto.response.UserResponse;
 import com.tranvandang.backend.service.ProductImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

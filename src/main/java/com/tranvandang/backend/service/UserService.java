@@ -4,17 +4,13 @@ package com.tranvandang.backend.service;
 import com.tranvandang.backend.constant.PredefinedRole;
 import com.tranvandang.backend.dto.request.UserCreationRequest;
 import com.tranvandang.backend.dto.request.UserUpdateRequest;
-import com.tranvandang.backend.dto.response.ProductResponse;
 import com.tranvandang.backend.dto.response.UserResponse;
-import com.tranvandang.backend.entity.Address;
-import com.tranvandang.backend.entity.Product;
 import com.tranvandang.backend.mapper.AddressMapper;
 import com.tranvandang.backend.repository.AddressRepository;
 import com.tranvandang.backend.entity.Role;
 import com.tranvandang.backend.entity.User;
 import com.tranvandang.backend.exception.AppException;
 import com.tranvandang.backend.exception.ErrorCode;
-import com.tranvandang.backend.exception.ResourceNotFoundException;
 import com.tranvandang.backend.mapper.UserMapper;
 import com.tranvandang.backend.repository.RoleRepository;
 import com.tranvandang.backend.repository.UserRepository;
@@ -35,7 +31,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Slf4j
@@ -150,9 +145,6 @@ public class UserService {
     }
 
 
-    private User getUserById(String userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-    }
 
     public boolean isOwner(String authenticatedUsername, String userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));

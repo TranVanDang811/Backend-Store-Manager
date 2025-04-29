@@ -1,6 +1,5 @@
 package com.tranvandang.backend.mapper;
 
-import com.tranvandang.backend.dto.request.ProductImageRequest;
 import com.tranvandang.backend.dto.request.ProductRequest;
 import com.tranvandang.backend.dto.request.ProductUpdateRequest;
 import com.tranvandang.backend.dto.response.BrandResponse;
@@ -15,7 +14,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-import java.util.List;
 import java.util.Set;
 
 @Mapper(componentModel = "spring")

@@ -1,11 +1,11 @@
 package com.tranvandang.backend.service;
 
 import com.tranvandang.backend.dto.request.ShippingRequest;
-import com.tranvandang.backend.dto.response.PaymentResponse;
 import com.tranvandang.backend.dto.response.ShippingResponse;
 import com.tranvandang.backend.entity.Orders;
-import com.tranvandang.backend.entity.Payment;
 import com.tranvandang.backend.entity.Shipping;
+import com.tranvandang.backend.exception.AppException;
+import com.tranvandang.backend.exception.ErrorCode;
 import com.tranvandang.backend.mapper.ShippingMapper;
 import com.tranvandang.backend.repository.OrderRepository;
 import com.tranvandang.backend.repository.ShippingRepository;
@@ -38,7 +38,7 @@ public class ShippingService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         if (!order.getStatus().equals(OrderStatus.PROCESSING)) {
-            throw new RuntimeException("Order must be confirmed before shipping.");
+            throw new AppException(ErrorCode.ORDER_NOT_CONFIRMED);
         }
 
         Shipping shipping = shippingMapper.toEntity(request);
@@ -51,7 +51,7 @@ public class ShippingService {
 
     public ShippingResponse getShippingById(String shippingId) {
         Shipping shipping = shippingRepository.findById(shippingId)
-                .orElseThrow(() -> new RuntimeException("Shipping not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_NOT_FOUND));
         return shippingMapper.toResponse(shipping);
     }
 
@@ -69,7 +69,7 @@ public class ShippingService {
     @Transactional
     public ShippingResponse updateShippingStatus(String shippingId, ShippingStatus newStatus) {
         Shipping shipping = shippingRepository.findById(shippingId)
-                .orElseThrow(() -> new RuntimeException("Shipping not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_NOT_FOUND));
 
         shipping.setStatus(newStatus);
         shipping.setUpdateAt(new Date());
@@ -80,7 +80,7 @@ public class ShippingService {
     @Transactional
     public ShippingResponse updateTrackingNumber(String shippingId, String trackingNumber) {
         Shipping shipping = shippingRepository.findById(shippingId)
-                .orElseThrow(() -> new RuntimeException("Shipping not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_NOT_FOUND));
 
         shipping.setTrackingNumber(trackingNumber);
         shipping.setUpdateAt(new Date());
@@ -91,10 +91,10 @@ public class ShippingService {
     @Transactional
     public void deleteShipping(String shippingId) {
         Shipping shipping = shippingRepository.findById(shippingId)
-                .orElseThrow(() -> new RuntimeException("Shipping not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_NOT_FOUND));
 
         if (!shipping.getStatus().equals(ShippingStatus.PENDING)) {
-            throw new RuntimeException("Cannot delete a shipped order.");
+            throw new AppException(ErrorCode.ORDER_ALREADY_SHIPPED);
         }
 
         shippingRepository.delete(shipping);

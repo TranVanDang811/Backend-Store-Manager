@@ -158,7 +158,7 @@ public class PaymentService {
         List<Payment> payments = paymentRepository.findAll();
         return payments.stream()
                 .map(paymentMapper::toResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /** Lấy thanh toán theo ID */

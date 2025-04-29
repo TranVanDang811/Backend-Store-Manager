@@ -1,6 +1,5 @@
 package com.tranvandang.backend.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -15,9 +14,8 @@ import java.util.Set;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
-public class Brand {
+public class Brand extends AbstractEntity{
 
-    @Id
     String name;  // Tên thương hiệu
 
     String logoUrl;  // Logo thương hiệu

@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatusCode;
 @Getter
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(6666, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
-    INVALID_KEY(1001, "Invalid message key", HttpStatus.BAD_REQUEST), // loi cho biet sai gi do trong code
+    INVALID_KEY(1001, "Invalid message key", HttpStatus.BAD_REQUEST), // loi cho sai gi do trong code
     USER_EXISTED(1002, "User existed", HttpStatus.BAD_REQUEST),
     FIRSTNAME_INVALID(1003, "FirstName must be at least {min} characters", HttpStatus.BAD_REQUEST),
     USERNAME_INVALID(1013, "Username must be at least {min} characters", HttpStatus.BAD_REQUEST),
@@ -28,8 +28,15 @@ public enum ErrorCode {
     RESOURCE_NOT_FOUND(404,"Image not found", HttpStatus.NOT_FOUND),
     SERVER_ERROR(111,"Error deleting photos on Cloudinary",HttpStatus.INTERNAL_SERVER_ERROR),
     CANNOT_DELETE_THUMBNAIL(400,"Cannot delete profile picture. Please update your profile picture first.",HttpStatus.BAD_REQUEST),
-    INVALID_STATUS(404,"INVALID STATUS",HttpStatus.NOT_FOUND)
-    ;
+    INVALID_STATUS(404,"INVALID STATUS",HttpStatus.NOT_FOUND),
+    TOKEN_GENERATION_FAILED(500, "Failed to generate token", HttpStatus.INTERNAL_SERVER_ERROR),
+    DISCOUNT_NOT_FOUND_MESSAGE(404,"Discount not found with id:",HttpStatus.NOT_FOUND),
+    IMPORT_ORDER_NOT_FOUND(404,"Import Order not found",HttpStatus.NOT_FOUND),
+    SHIPPING_NOT_FOUND(404,"Shipping not found",HttpStatus.NOT_FOUND),
+    ORDER_ALREADY_SHIPPED(400, "Cannot delete a shipped order.",HttpStatus.BAD_REQUEST),
+    ORDER_NOT_CONFIRMED(400, "Order must be confirmed before shipping.", HttpStatus.BAD_REQUEST),
+
+            ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
@@ -37,7 +44,7 @@ public enum ErrorCode {
         this.statusCode = statusCode;
     }
 
-    private int code;
-    private String message;
-    private HttpStatusCode statusCode;
+    private final int code;
+    private final String message;
+    private final HttpStatusCode statusCode;
 }

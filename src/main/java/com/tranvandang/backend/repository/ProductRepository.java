@@ -1,6 +1,5 @@
 package com.tranvandang.backend.repository;
 
-import com.tranvandang.backend.entity.Brand;
 import com.tranvandang.backend.entity.Category;
 import com.tranvandang.backend.entity.Product;
 import com.tranvandang.backend.util.ProductStatus;
@@ -15,8 +14,6 @@ import java.util.List;
 public interface    ProductRepository extends JpaRepository<Product,String> {
     Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
     Page<Product> findAll(Pageable pageable);
-    List<Product> findByBrand_Name(String brandName);
-    List<Product> findByCategory_Name(String categoryName);
     Page<Product> findByStatus(ProductStatus status, Pageable pageable);
 
     Page<Product> findByCategory_NameAndStatus(String categoryName, ProductStatus status, Pageable pageable);

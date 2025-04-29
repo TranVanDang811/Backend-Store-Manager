@@ -1,7 +1,6 @@
 package com.tranvandang.backend.mapper;
 
 import com.tranvandang.backend.dto.request.PaymentRequest;
-import com.tranvandang.backend.dto.response.OrderResponse;
 import com.tranvandang.backend.dto.response.PaymentResponse;
 import com.tranvandang.backend.entity.Orders;
 import com.tranvandang.backend.entity.Payment;

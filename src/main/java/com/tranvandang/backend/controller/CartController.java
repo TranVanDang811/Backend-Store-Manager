@@ -2,13 +2,9 @@ package com.tranvandang.backend.controller;
 
 import com.tranvandang.backend.dto.request.ApiResponse;
 import com.tranvandang.backend.dto.request.CartItemRequest;
-import com.tranvandang.backend.dto.request.CartRequest;
-import com.tranvandang.backend.dto.request.CategoryRequest;
 import com.tranvandang.backend.dto.response.CartResponse;
-import com.tranvandang.backend.dto.response.CategoryResponse;
 import com.tranvandang.backend.service.CartService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

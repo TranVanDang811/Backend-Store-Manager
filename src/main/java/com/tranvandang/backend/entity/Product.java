@@ -1,7 +1,6 @@
 package com.tranvandang.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.tranvandang.backend.util.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;

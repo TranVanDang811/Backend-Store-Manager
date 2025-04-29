@@ -1,5 +1,8 @@
 package com.tranvandang.backend.exception;
 
+import lombok.Getter;
+
+@Getter
 public class AppException extends RuntimeException {
 
     public AppException(ErrorCode errorCode) {
@@ -7,13 +10,7 @@ public class AppException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    private ErrorCode errorCode;
+    private final ErrorCode errorCode;
 
-    public ErrorCode getErrorCode() {
-        return errorCode;
-    }
 
-    public void setErrorCode(ErrorCode errorCode) {
-        this.errorCode = errorCode;
-    }
 }

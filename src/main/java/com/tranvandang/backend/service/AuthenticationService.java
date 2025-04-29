@@ -46,19 +46,19 @@ public class AuthenticationService {
 
     @NonFinal
     @Value("${jwt.signerKey}") // goi tu yaml
-    protected String SIGNER_KEY;
+    protected String signerKey;
 
     @NonFinal
     @Value("${jwt.valid-duration}") // goi tu yaml
-    protected long VALID_DURATION;
+    protected long validDuration;
 
     @NonFinal
     @Value("${jwt.refreshable-duration}") // goi tu yaml
-    protected long REFRESHABLE_DURATION;
+    protected long refreshableDuration;
     // Xác thực token và kiểm tra tính hợp lệ
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
         var token = request.getToken();
-        boolean isValid = true;
+
         try {
             verifyToken(token, false);
         } catch (AppException e) {
@@ -68,7 +68,7 @@ public class AuthenticationService {
     }
     // Xác thực user và tạo JWT nếu hợp lệ
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        log.info("SignKey: {}",SIGNER_KEY);
+        log.info("SignKey: {}",signerKey);
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         var user = userRepository
                 .findByUsername(request.getUsername())
@@ -104,7 +104,7 @@ public class AuthenticationService {
     }
     // Xác minh JWT
     private SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
-        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
+        JWSVerifier verifier = new MACVerifier(signerKey.getBytes());
         SignedJWT signedJWT = SignedJWT.parse(token);
 
         Date expiryTime = (isRefresh)
@@ -112,16 +112,16 @@ public class AuthenticationService {
                         .getJWTClaimsSet()
                         .getIssueTime()
                         .toInstant()
-                        .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS)
+                        .plus(refreshableDuration, ChronoUnit.SECONDS)
                         .toEpochMilli())
                 : signedJWT.getJWTClaimsSet().getExpirationTime();
 
         var verified = signedJWT.verify(verifier);
         if (!(verified && expiryTime.after(new Date()))) throw new AppException(ErrorCode.UNAUTHENTICATED);
 
-        if (invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+        if (invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID())) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
-        {
+
         }
         return signedJWT;
     }
@@ -153,7 +153,7 @@ public class AuthenticationService {
                 .subject(user.getUsername())
                 .issuer("backend.com")
                 .issueTime(new Date())
-                .expirationTime(Date.from(Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS)))
+                .expirationTime(Date.from(Instant.now().plus(validDuration, ChronoUnit.SECONDS)))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
                 .build();
@@ -162,11 +162,11 @@ public class AuthenticationService {
 
         JWSObject jwsObject = new JWSObject(header, payload);
         try {
-            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
+            jwsObject.sign(new MACSigner(signerKey.getBytes()));
             return jwsObject.serialize();
         } catch (JOSEException e) {
             log.error("Cannot create refresh token", e);
-            throw new RuntimeException(e);
+            throw new AppException(ErrorCode.TOKEN_GENERATION_FAILED);
         }
     }
 
@@ -179,7 +179,7 @@ public class AuthenticationService {
                 .subject(user.getUsername()) // dai dien nguoi dang nhap
                 .issuer("backend.com") // dang nhap tu ai
                 .issueTime(new Date()) // thoi gian tao
-                .expirationTime(Date.from(Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS)))
+                .expirationTime(Date.from(Instant.now().plus(validDuration, ChronoUnit.SECONDS)))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
                 .build();
@@ -188,11 +188,11 @@ public class AuthenticationService {
 
         JWSObject jwsObject = new JWSObject(header, payload);
         try {
-            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
+            jwsObject.sign(new MACSigner(signerKey.getBytes()));
             return jwsObject.serialize();
         } catch (JOSEException e) {
             log.error("Cannot create token", e);
-            throw new RuntimeException(e);
+            throw new AppException(ErrorCode.TOKEN_GENERATION_FAILED);
         }
     }
 

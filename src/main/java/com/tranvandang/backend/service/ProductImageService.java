@@ -14,7 +14,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -68,10 +67,6 @@ public class ProductImageService {
     }
 
     public List<ProductImageResponse> getImagesByProductId(String productId) {
-        // Kiểm tra sản phẩm tồn tại
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
-
         // Lấy danh sách ảnh từ repository
         List<ProductImage> images = productImageRepository.findByProductId(productId);
 

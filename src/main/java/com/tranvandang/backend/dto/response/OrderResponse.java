@@ -5,7 +5,6 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.util.Set;
-import java.util.UUID;
 
 @Data
 @Builder
@@ -17,6 +16,8 @@ public class OrderResponse {
     String userId;
     String userName;
     BigDecimal totalPrice;
+    BigDecimal discountAmount;
+    BigDecimal finalAmount;
     String status;
     Set<OrderDetailResponse> orderDetails;
 }

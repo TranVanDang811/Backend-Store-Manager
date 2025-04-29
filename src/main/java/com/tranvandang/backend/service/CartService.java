@@ -1,6 +1,5 @@
 package com.tranvandang.backend.service;
 
-import com.tranvandang.backend.dto.request.CartRequest;
 import com.tranvandang.backend.dto.request.CartItemRequest;
 import com.tranvandang.backend.dto.response.CartResponse;
 import com.tranvandang.backend.entity.Cart;

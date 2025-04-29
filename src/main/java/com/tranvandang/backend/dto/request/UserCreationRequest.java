@@ -4,16 +4,12 @@ package com.tranvandang.backend.dto.request;
 import com.tranvandang.backend.util.Gender;
 import com.tranvandang.backend.util.UserStatus;
 import com.tranvandang.backend.validator.DobConstraint;
-import jakarta.persistence.Column;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.Set;
 
 @Data

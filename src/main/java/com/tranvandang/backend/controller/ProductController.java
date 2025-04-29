@@ -2,10 +2,7 @@ package com.tranvandang.backend.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tranvandang.backend.dto.request.ApiResponse;
-import com.tranvandang.backend.dto.request.ProductRequest;
-import com.tranvandang.backend.dto.request.ProductUpdateRequest;
-import com.tranvandang.backend.dto.request.UserUpdateRequest;
+import com.tranvandang.backend.dto.request.*;
 import com.tranvandang.backend.dto.response.ProductResponse;
 import com.tranvandang.backend.dto.response.UserResponse;
 import com.tranvandang.backend.entity.Product;
@@ -61,31 +58,21 @@ public class ProductController {
     }
 
 
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ApiResponse<Page<ProductResponse>> getProducts(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String categoryName,
-            @RequestParam(required = false) String brandName,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String sortByPrice,       // ASC | DESC
-            @RequestParam(required = false) String sortByName,        // ASC | DESC
-            @RequestParam(required = false) String sortByCreatedAt    // ASC | DESC
-    ) {
+    public ApiResponse<Page<ProductResponse>> getProducts(@ModelAttribute ProductFilterRequest request) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));
 
-        Page<ProductResponse> products = productService.getProducts(
-                categoryName,brandName,sortByPrice,sortByName, sortByCreatedAt, status,page - 1, size
+        // Convert page from 1-based to 0-based
+        request.setPage(Math.max(0, request.getPage() - 1));
 
-
-        );
+        Page<ProductResponse> products = productService.getProducts(request);
 
         return ApiResponse.<Page<ProductResponse>>builder()
                 .result(products)
                 .build();
     }
+
 
 
     @GetMapping("/search")

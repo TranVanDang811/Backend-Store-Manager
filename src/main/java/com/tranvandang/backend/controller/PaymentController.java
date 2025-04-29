@@ -2,10 +2,8 @@ package com.tranvandang.backend.controller;
 
 import com.tranvandang.backend.dto.request.ApiResponse;
 import com.tranvandang.backend.dto.request.PaymentRequest;
-import com.tranvandang.backend.dto.response.OrderResponse;
 import com.tranvandang.backend.dto.response.PaymentResponse;
 import com.tranvandang.backend.service.PaymentService;
-import com.tranvandang.backend.util.OrderStatus;
 import com.tranvandang.backend.util.PaymentStatus;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +19,7 @@ import java.util.List;
 @RequestMapping("/payments")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class PaymentController {
+public class    PaymentController {
     final PaymentService paymentService;
 
     /** Tạo thanh toán với phương thức được chọn */

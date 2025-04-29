@@ -1,7 +1,6 @@
 package com.tranvandang.backend.controller;
 
 import com.tranvandang.backend.dto.request.ShippingRequest;
-import com.tranvandang.backend.dto.response.PaymentResponse;
 import com.tranvandang.backend.dto.response.ShippingResponse;
 import com.tranvandang.backend.service.ShippingService;
 import com.tranvandang.backend.util.ShippingStatus;

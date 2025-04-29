@@ -1,21 +1,15 @@
 package com.tranvandang.backend.service;
 
-import com.tranvandang.backend.dto.request.OrderDetailRequest;
 import com.tranvandang.backend.dto.request.OrderRequest;
 import com.tranvandang.backend.dto.response.OrderResponse;
-import com.tranvandang.backend.dto.response.ProductResponse;
 import com.tranvandang.backend.entity.Orders;
 import com.tranvandang.backend.entity.OrderDetail;
 import com.tranvandang.backend.exception.AppException;
 import com.tranvandang.backend.exception.ErrorCode;
 import com.tranvandang.backend.mapper.OrderDetailMapper;
 import com.tranvandang.backend.mapper.OrderMapper;
-import com.tranvandang.backend.repository.OrderDetailRepository;
-import com.tranvandang.backend.repository.OrderRepository;
-import com.tranvandang.backend.repository.ProductRepository;
-import com.tranvandang.backend.repository.UserRepository;
+import com.tranvandang.backend.repository.*;
 import com.tranvandang.backend.util.OrderStatus;
-import com.tranvandang.backend.util.ProductStatus;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +24,7 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Set;
 import com.tranvandang.backend.entity.*;
-import java.util.HashSet;
-import java.util.UUID;
+
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,30 +33,27 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrderService {
 
-    private final OrderRepository orderRepository;
-    private final OrderDetailRepository orderDetailRepository;
-    private final UserRepository userRepository;
-    private final ProductRepository productRepository;
-    private final OrderMapper orderMapper;
-    private final OrderDetailMapper orderDetailMapper;
+    final OrderRepository orderRepository;
+    final OrderDetailRepository orderDetailRepository;
+    final UserRepository userRepository;
+    final ProductRepository productRepository;
+    final OrderMapper orderMapper;
+    final OrderDetailMapper orderDetailMapper;
+    final DiscountRepository discountRepository;
 
     @Transactional
     public OrderResponse createOrder(OrderRequest request) {
-        // Lấy thông tin user
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Tạo đơn hàng với trạng thái PENDING
         Orders order = Orders.builder()
                 .user(user)
                 .status(OrderStatus.PENDING)
-                .totalPrice(BigDecimal.ZERO) // Tính sau
+                .totalPrice(BigDecimal.ZERO)
                 .build();
 
-        // Lưu đơn hàng vào DB
         Orders savedOrder = orderRepository.save(order);
 
-        // Xử lý danh sách sản phẩm trong đơn
         Set<OrderDetail> orderDetails = request.getOrderDetails().stream()
                 .map(detailRequest -> {
                     Product product = productRepository.findById(detailRequest.getProductId())
@@ -82,26 +72,40 @@ public class OrderService {
                 })
                 .collect(Collectors.toSet());
 
-        // Cập nhật tổng tiền đơn hàng
         BigDecimal totalPrice = orderDetails.stream()
                 .map(OrderDetail::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         savedOrder.setTotalPrice(totalPrice);
 
-        // Lưu danh sách sản phẩm vào DB
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        BigDecimal finalAmount = totalPrice;
+
+        if (request.getDiscountCode() != null && !request.getDiscountCode().isEmpty()) {
+            Discount discount = discountRepository.findByCode(request.getDiscountCode())
+                    .orElseThrow(() -> new RuntimeException("Invalid discount code"));
+
+            if (discount.isCurrentlyValid()) {
+                discountAmount = totalPrice.multiply(BigDecimal.valueOf(discount.getDiscountRate()));
+                finalAmount = totalPrice.subtract(discountAmount);
+            }
+        }
+
+        savedOrder.setDiscountAmount(discountAmount.setScale(2, RoundingMode.HALF_UP));
+        savedOrder.setFinalAmount(finalAmount.setScale(2, RoundingMode.HALF_UP));
+
         orderDetailRepository.saveAll(orderDetails);
         savedOrder.setOrderDetails(orderDetails);
 
-        // Sử dụng MapStruct để chuyển đổi thành OrderResponse
         return orderMapper.toResponse(savedOrder);
     }
+
 
 
     public List<OrderResponse> getAllOrders() {
         List<Orders> orders = orderRepository.findAll();
         return orders.stream()
                 .map(orderMapper::toResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public OrderResponse getOrderById(String orderId) {
