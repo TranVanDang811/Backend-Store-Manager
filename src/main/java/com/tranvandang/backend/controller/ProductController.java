@@ -4,13 +4,11 @@ package com.tranvandang.backend.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tranvandang.backend.dto.request.*;
 import com.tranvandang.backend.dto.response.ProductResponse;
-import com.tranvandang.backend.dto.response.UserResponse;
 import com.tranvandang.backend.entity.Product;
 import com.tranvandang.backend.exception.AppException;
 import com.tranvandang.backend.exception.ErrorCode;
 import com.tranvandang.backend.service.ProductService;
 import com.tranvandang.backend.util.ProductStatus;
-import com.tranvandang.backend.util.UserStatus;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -18,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,25 +32,25 @@ public class ProductController {
     ProductService productService;
 
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    // API nhận request POST với dữ liệu dạng multipart/form-data
+
     public ApiResponse<ProductResponse> createProduct(
-            @RequestPart("product") String productJson,  // Nhận JSON dưới dạng String từ request
-            @RequestPart(value = "images", required = false) MultipartFile[] images) {  // Nhận danh sách ảnh (nếu có)
-        ObjectMapper objectMapper = new ObjectMapper();  // Khởi tạo ObjectMapper để chuyển đổi JSON thành object Java
+            @RequestPart("product") String productJson,
+            @RequestPart(value = "images", required = false) MultipartFile[] images) {
+        ObjectMapper objectMapper = new ObjectMapper();
         ProductRequest productRequest;
         try {
-            productRequest = objectMapper.readValue(productJson, ProductRequest.class);  // Chuyển JSON thành object ProductRequest
+            productRequest = objectMapper.readValue(productJson, ProductRequest.class);
         } catch (Exception e) {
-            throw new AppException(ErrorCode.INVALID_JSON);  // Ném lỗi khi parse JSON thất bại
+            throw new AppException(ErrorCode.INVALID_JSON);
         }
-        return ApiResponse.<ProductResponse>builder()  // Trả về API response dạng generic
-                .result(productService.create(productRequest, images))  // Gọi service để tạo sản phẩm và nhận kết quả
+        return ApiResponse.<ProductResponse>builder()
+                .result(productService.create(productRequest, images))
                 .build();
     }
 
-    // Cập nhật thông tin user theo id
+
     @PutMapping("/{productId}")
-    ProductResponse updateUser(@PathVariable String productId, @RequestBody ProductUpdateRequest request) {
+    ProductResponse updateProduct(@PathVariable String productId, @RequestBody ProductUpdateRequest request) {
         return productService.updateProduct(productId, request);
     }
 
@@ -74,7 +71,6 @@ public class ProductController {
     }
 
 
-
     @GetMapping("/search")
     public Page<Product> searchProducts(
             @RequestParam(defaultValue = "") String keyword,
@@ -89,25 +85,29 @@ public class ProductController {
     }
 
     @DeleteMapping("/{productId}")
-    ApiResponse<Void>deleteProduct(@PathVariable String productId) {
+    ApiResponse<Void> deleteProduct(@PathVariable String productId) {
         productService.deleteProduct(productId);
         return ApiResponse.<Void>builder().message("Delete successfully").build();
     }
 
     @GetMapping("/{id}/related")
-    public ResponseEntity<List<ProductResponse>> getRelated(@PathVariable String id) {
-        return ResponseEntity.ok(productService.getRelatedProducts(id));
+    ApiResponse<List<ProductResponse>> getRelated(@PathVariable String id) {
+        return ApiResponse.<List<ProductResponse>>builder()
+                .result(productService.getRelatedProducts(id))
+                .build();
     }
 
     @DeleteMapping("/bulk")
-    public ResponseEntity<Void> deleteMany(@RequestBody List<String> ids) {
+    ApiResponse<Void> deleteMany(@RequestBody List<String> ids) {
         productService.deleteProducts(ids);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.<Void>builder().message("Delete many product successfully").build();
     }
 
     @GetMapping("/statistics")
-    public ResponseEntity<Map<String, Object>> getStats() {
-        return ResponseEntity.ok(productService.getProductStatistics());
+    public ApiResponse<Map<String, Object>> getStats() {
+        return ApiResponse.<Map<String, Object>>builder()
+                .result(productService.getProductStatistics())
+                .build();
     }
 
 

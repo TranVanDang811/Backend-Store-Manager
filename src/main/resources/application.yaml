@@ -28,6 +28,22 @@ spring:
       allowed-methods: "*"
       allowed-headers: "*"
       allow-credentials: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: tranvandang08112003b@gmail.com
+    password: oeafheamvkwwzbnk
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+app:
+  admin:
+    username: admin
+    password: admin
 
 cloudinary:
   cloud-name: dx3mcnnfa

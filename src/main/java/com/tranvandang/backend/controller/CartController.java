@@ -14,6 +14,7 @@ public class CartController {
 
     private final CartService cartService;
 
+    //Created Cart
     @PostMapping("/{userId}/add")
     ApiResponse<CartResponse> addToCart(@PathVariable String userId, @RequestBody CartItemRequest request) {
         return ApiResponse.<CartResponse>builder()
@@ -21,6 +22,7 @@ public class CartController {
                 .build();
     }
 
+    //Get cart by user id
     @GetMapping("/{userId}")
     public ApiResponse<CartResponse> getCartByUserId(@PathVariable String userId) {
         return ApiResponse.<CartResponse>builder()
@@ -28,6 +30,16 @@ public class CartController {
                 .build();
     }
 
+    //Clear all cart
+    @DeleteMapping("/clear")
+    public ApiResponse<Void> clearCart(@RequestParam String userId) {
+        cartService.clearCart(userId);
+        return ApiResponse.<Void>builder()
+                .message("Delete all cart successfully")
+                .build();
+    }
+
+    //Delete item cart
     @DeleteMapping("/{userId}/remove/{productId}")
     public ApiResponse<Void> removeItemFromCart(@PathVariable String userId, @PathVariable String productId) {
         cartService.removeItemFromCart(userId, productId);

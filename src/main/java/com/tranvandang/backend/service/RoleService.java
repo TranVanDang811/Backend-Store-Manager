@@ -3,6 +3,8 @@ package com.tranvandang.backend.service;
 
 import com.tranvandang.backend.dto.request.RoleRequest;
 import com.tranvandang.backend.dto.response.RoleResponse;
+import com.tranvandang.backend.exception.AppException;
+import com.tranvandang.backend.exception.ErrorCode;
 import com.tranvandang.backend.mapper.RoleMapper;
 import com.tranvandang.backend.repository.PermissionRepository;
 import com.tranvandang.backend.repository.RoleRepository;
@@ -10,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -24,6 +27,7 @@ public class RoleService {
     PermissionRepository permissionRepository;
     RoleMapper roleMapper;
 
+    @PreAuthorize("hasRole('ADMIN')")
     public RoleResponse create(RoleRequest request) {
         var role = roleMapper.toRole(request);
         var permissions = permissionRepository.findAllById(request.getPermissions());
@@ -33,10 +37,18 @@ public class RoleService {
         return roleMapper.toRoleResponse(role);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    public RoleResponse getById(String id) {
+        var role = roleRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+        return roleMapper.toRoleResponse(role);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     public List<RoleResponse> getAll() {
         return roleRepository.findAll().stream().map(roleMapper::toRoleResponse).toList();
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     public void delete(String role) {
         roleRepository.deleteById(role);
     }

@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Set;
 
 @Data
@@ -18,6 +19,9 @@ public class OrderResponse {
     BigDecimal totalPrice;
     BigDecimal discountAmount;
     BigDecimal finalAmount;
+    String discountCode;
     String status;
+    LocalDate createdAt;
+    LocalDate updateAt;
     Set<OrderDetailResponse> orderDetails;
 }

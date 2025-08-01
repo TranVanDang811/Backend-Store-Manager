@@ -1,6 +1,5 @@
 package com.tranvandang.backend.service;
 
-import com.tranvandang.backend.constant.PredefinedRole;
 import com.tranvandang.backend.dto.request.ProductFilterRequest;
 import com.tranvandang.backend.dto.request.ProductRequest;
 import com.tranvandang.backend.dto.request.ProductUpdateRequest;
@@ -11,7 +10,6 @@ import com.tranvandang.backend.exception.ErrorCode;
 import com.tranvandang.backend.mapper.ProductMapper;
 import com.tranvandang.backend.repository.*;
 import com.tranvandang.backend.util.ProductStatus;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -40,6 +37,8 @@ public class ProductService {
     ProductMapper productMapper;
     BrandRepository brandRepository;
     CartItemRepository cartItemRepository;
+
+    @PreAuthorize("hasRole('ADMIN')")
     public ProductResponse create(ProductRequest request, MultipartFile[] images) {
 
 
@@ -65,11 +64,11 @@ public class ProductService {
                     ProductImage image = ProductImage.builder()
                             .imageUrl(uploadResult.getUrl())
                             .publicId(uploadResult.getPublicId())
-                            .product(product) // set lại quan hệ
+                            .product(product)
                             .build();
                     productImages.add(image);
 
-                    if (i == 0) thumbnailUrl = uploadResult.getUrl(); // ảnh đầu tiên làm thumbnail
+                    if (i == 0) thumbnailUrl = uploadResult.getUrl();
                 }
             }
         }
@@ -93,20 +92,20 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
 
-        // MapStruct tự động cập nhật các trường từ request -> product
+
         productMapper.updateProductFromRequest(request, product);
 
-        // Lưu lại vào DB
+
         Product updatedProduct = productRepository.save(product);
 
         return productMapper.toProductResponse(updatedProduct);
     }
 
-
+    @PreAuthorize("hasRole('ADMIN') and hasRole('EMPLOYEE')")
     public Page<ProductResponse> getProducts(ProductFilterRequest request) {
         List<Sort.Order> orders = new ArrayList<>();
 
-        // Handle sorting
+
         Optional.ofNullable(request.getSortByPrice())
                 .map(String::toUpperCase)
                 .ifPresent(sort -> orders.add(
@@ -129,7 +128,7 @@ public class ProductService {
                 ? PageRequest.of(request.getPage(), request.getSize())
                 : PageRequest.of(request.getPage(), request.getSize(), Sort.by(orders));
 
-        // Parse status
+
         ProductStatus productStatus = null;
         if (request.getStatus() != null) {
             try {
@@ -187,10 +186,10 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_EXISTED));
 
-        // Xoá cart items trước để tránh lỗi FK
+
         cartItemRepository.deleteAllByProductId(productId);
 
-        // Xoá ảnh trên Cloudinary
+
         for (ProductImage image : product.getImages()) {
             try {
                 if (image.getPublicId() != null) {
@@ -201,10 +200,10 @@ public class ProductService {
             }
         }
 
-        // Nếu đã cascade thì có thể bỏ dòng này
+
         imageRepository.deleteAll(product.getImages());
 
-        // Xoá sản phẩm
+
         productRepository.delete(product);
     }
 
@@ -212,7 +211,7 @@ public class ProductService {
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteProducts(List<String> productIds) {
         for (String productId : productIds) {
-            deleteProduct(productId); // tái sử dụng hàm đã có
+            deleteProduct(productId);
         }
     }
 

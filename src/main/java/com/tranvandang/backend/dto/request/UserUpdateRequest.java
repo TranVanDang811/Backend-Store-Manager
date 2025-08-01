@@ -12,8 +12,6 @@ import lombok.experimental.FieldDefaults;
 public class UserUpdateRequest {
     String firstName;
     String lastName;
-    String username;
-    String password;
     String phone;
     String email;
 }

@@ -1,12 +1,13 @@
 package com.tranvandang.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tranvandang.backend.util.ChangerStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -17,10 +18,13 @@ import lombok.experimental.FieldDefaults;
 @Entity
 public class Slider extends AbstractEntity {
 
-    String imageUrl;
-    String publicId;
+
     String title;
     String description;
+    String imageUrl;
+    @OneToOne(mappedBy = "slider", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    Images images;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

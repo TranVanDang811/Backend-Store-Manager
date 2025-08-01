@@ -26,6 +26,9 @@ public class Orders extends AbstractEntity {
     BigDecimal discountAmount;   // Số tiền giảm
     BigDecimal finalAmount;      // Tổng tiền thực trả
 
+    @Column(name = "discount_code")
+    String discountCode;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     OrderStatus status;  // Trạng thái đơn hàng

@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface OrderDetailMapper {
 
-    @Mapping(target = "productId", source = "productId")
+    @Mapping(target = "productId", source = "product.id")
     @Mapping(target = "productName", source = "productName")
     @Mapping(target = "productPrice", source = "productPrice")
     @Mapping(target = "quantity", source = "quantity")

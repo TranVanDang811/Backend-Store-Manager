@@ -1,28 +1,37 @@
 package com.tranvandang.backend.service;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import com.tranvandang.backend.dto.request.PaymentRequest;
-import com.tranvandang.backend.dto.response.OrderResponse;
 import com.tranvandang.backend.dto.response.PaymentResponse;
 import com.tranvandang.backend.entity.Orders;
 import com.tranvandang.backend.entity.Payment;
+import com.tranvandang.backend.entity.User;
 import com.tranvandang.backend.exception.AppException;
 import com.tranvandang.backend.exception.ErrorCode;
 import com.tranvandang.backend.mapper.PaymentMapper;
 import com.tranvandang.backend.repository.OrderRepository;
 import com.tranvandang.backend.repository.PaymentRepository;
-import com.tranvandang.backend.util.OrderStatus;
+import com.tranvandang.backend.repository.UserRepository;
+import com.tranvandang.backend.util.PaymentMethod;
 import com.tranvandang.backend.util.PaymentStatus;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
 
 @Slf4j
 @Service
@@ -32,128 +41,69 @@ public class PaymentService {
     final PaymentRepository paymentRepository;
     final OrderRepository orderRepository;
     final PaymentMapper paymentMapper;
-
-//    @Value("${stripe.secret-key}")
-//    private String stripeSecretKey;
+    final UserRepository userRepository;
 
     public PaymentResponse createPayment(PaymentRequest request) {
         Orders order = orderRepository.findById(request.getOrderId())
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
 
         Payment payment = paymentMapper.toEntity(request);
         payment.setOrder(order);
+        payment.setTransactionId(generateTransactionId(request.getPaymentMethod()));
+        payment.setAmount(order.getTotalPrice());
+        payment.setCreatedAt(LocalDateTime.now());
 
-        switch (request.getPaymentMethod()) {
-            case CASH_ON_DELIVERY:
-                return processCashOnDelivery(payment);
-            case PAYPAL:
-                return processPayPal(payment);
-            case BANK_TRANSFER:
-                return processBankTransfer(payment);
-//            case CREDIT_CARD:
-//                return processCreditCard(payment, request.getCardToken());
-            default:
-                throw new IllegalArgumentException("Unsupported payment method");
-        }
-    }
+        if (request.getPaymentMethod() == PaymentMethod.CASH_ON_DELIVERY ) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth.getName();
+            User currentUser = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-    /** Xử lý thanh toán khi nhận hàng */
-    private PaymentResponse processCashOnDelivery(Payment payment) {
-        payment.setAmount(payment.getOrder().getTotalPrice());
-        payment.setStatus(PaymentStatus.PENDING);
-        payment.setTransactionId("COD-" + UUID.randomUUID());
-
-        log.info("Processing COD payment: Order ID={}, Amount={}, Transaction ID={}",
-                payment.getOrder().getId(), payment.getAmount(), payment.getTransactionId());
-
-        paymentRepository.save(payment);
-        return paymentMapper.toResponse(payment);
-    }
-
-    /** Xử lý thanh toán qua PayPal */
-    private PaymentResponse processPayPal(Payment payment) {
-        payment.setStatus(PaymentStatus.PENDING);
-        payment.setTransactionId("PAYPAL-" + UUID.randomUUID());
-
-        boolean isPayPalConfirmed = verifyPayPalPayment(payment.getTransactionId());
-        payment.setStatus(isPayPalConfirmed ? PaymentStatus.COMPLETED : PaymentStatus.FAILED);
-
-        paymentRepository.save(payment);
-        return paymentMapper.toResponse(payment);
-    }
-
-    /** Xử lý thanh toán qua chuyển khoản ngân hàng */
-    private PaymentResponse processBankTransfer(Payment payment) {
-        payment.setStatus(PaymentStatus.PENDING);
-        payment.setTransactionId("BANK-" + UUID.randomUUID());
-
-        // Trả về thông tin ngân hàng
-        String bankInfo = "Ngân hàng: ABC Bank\n"
-                + "Số tài khoản: 123456789\n"
-                + "Chủ tài khoản: Công ty ABC\n"
-                + "Nội dung chuyển khoản: THANHTOAN-" + payment.getTransactionId();
-
-        System.out.println("Gửi thông tin ngân hàng cho khách: \n" + bankInfo);
-
-        paymentRepository.save(payment);
-        return paymentMapper.toResponse(payment);
-    }
-
-    /** Xử lý thanh toán bằng thẻ tín dụng (Stripe) */
-//    private PaymentResponse processCreditCard(Payment payment, String cardToken) {
-//        try {
-//            Stripe.apiKey = stripeSecretKey;
-//
-//            Map<String, Object> chargeParams = new HashMap<>();
-//            chargeParams.put("amount", (int) (payment.getAmount() * 100)); // Stripe dùng cents
-//            chargeParams.put("currency", "usd");
-//            chargeParams.put("source", cardToken);
-//            chargeParams.put("description", "Payment for order #" + payment.getOrder().getId());
-//
-//            Charge charge = Charge.create(chargeParams);
-//
-//            payment.setStatus(charge.getPaid() ? PaymentStatus.COMPLETED : PaymentStatus.FAILED);
-//            payment.setTransactionId(charge.getId());
-//            paymentRepository.save(payment);
-//
-//            return paymentMapper.toResponse(payment);
-//
-//        } catch (StripeException e) {
-//            throw new RuntimeException("Credit card payment failed: " + e.getMessage());
-//        }
-//    }
-
-    /** API xác nhận chuyển khoản ngân hàng */
-    public ResponseEntity<String> confirmBankTransfer(String transactionId) {
-        Payment payment = paymentRepository.findByTransactionId(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
-
-        if (payment.getStatus() == PaymentStatus.PENDING) {
             payment.setStatus(PaymentStatus.COMPLETED);
-            paymentRepository.save(payment);
-            return ResponseEntity.ok("Payment confirmed successfully!");
+            payment.setProcessedBy(currentUser);
+            payment.setProcessedAt(LocalDateTime.now());
         } else {
-            return ResponseEntity.badRequest().body("Payment already processed or failed!");
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth.getName();
+            User currentUser = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+            payment.setStatus(PaymentStatus.PENDING);
+            payment.setProcessedBy(currentUser);
+            payment.setProcessedAt(LocalDateTime.now());
         }
+
+        paymentRepository.save(payment);
+        return paymentMapper.toResponse(payment);
     }
 
-    /** Xác minh thanh toán PayPal (giả lập) */
-    private boolean verifyPayPalPayment(String transactionId) {
-        // Giả lập xác nhận PayPal (có thể tích hợp PayPal API)
-        return true; // Giả sử luôn thành công
+
+    private String generateTransactionId(PaymentMethod method) {
+        return method.name() + "-" + UUID.randomUUID();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    public PaymentResponse changerStatus(String paymentId, PaymentStatus status) {
-        Payment payment = paymentRepository.findById(paymentId)
+    public String confirmBankTransfer(String transactionId) {
+        Payment payment = paymentRepository.findByTransactionId(transactionId)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_EXISTED));
 
-        payment.setStatus(status);
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            return "The transaction has been processed.";
+        }
 
-        return paymentMapper.toPaymentResponse(paymentRepository.save(payment));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        payment.setStatus(PaymentStatus.COMPLETED);
+        payment.setProcessedBy(currentUser);
+        payment.setProcessedAt(LocalDateTime.now());
+
+        paymentRepository.save(payment);
+        return "Confirm successful transfer.";
     }
 
-    /** Lấy tất cả thanh toán */
+    /** Get all payments */
     public List<PaymentResponse> getAllPayments() {
         List<Payment> payments = paymentRepository.findAll();
         return payments.stream()
@@ -161,17 +111,53 @@ public class PaymentService {
                 .toList();
     }
 
-    /** Lấy thanh toán theo ID */
+    /** Get paid by ID */
     public PaymentResponse getPaymentById(String paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
         return paymentMapper.toResponse(payment);
     }
 
-    /** Lấy thanh toán theo orderId */
+    /** Get payment by orderId */
     public PaymentResponse getPaymentByOrderId(String orderId) {
         Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new RuntimeException("Payment not found for orderId: " + orderId));
         return paymentMapper.toResponse(payment);
+    }
+
+
+    //----------------------
+
+    private String generateQrContent(Orders order) {
+        return String.format(
+                "Ngân hàng: Vietcombank\n" +
+                        "Số TK: 0123456789\n" +
+                        "Chủ TK: TRAN VAN DANG\n" +
+                        "Nội dung: THANHTOAN-%s\n" +
+                        "Số tiền: %,.0f VND",
+                order.getId(),
+                order.getTotalPrice()
+        );
+    }
+
+    public byte[] generateQrImage(String content) {
+        try {
+            QRCodeWriter qrCodeWriter = new QRCodeWriter();
+            BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, 250, 250);
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", outputStream);
+            return outputStream.toByteArray();
+        } catch (WriterException | IOException e) {
+            throw new AppException(ErrorCode.UNABLE_QRCODE);
+        }
+    }
+
+    public byte[] getPaymentQrByOrderId(String orderId) {
+        Orders order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_EXISTED));
+
+        String content = generateQrContent(order);
+        return generateQrImage(content);
     }
 }

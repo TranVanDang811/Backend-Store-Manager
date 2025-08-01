@@ -4,7 +4,6 @@ import com.tranvandang.backend.dto.request.ApiResponse;
 import com.tranvandang.backend.dto.response.ProductImageResponse;
 import com.tranvandang.backend.service.ProductImageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -19,17 +18,19 @@ public class ProductImageController {
     private final ProductImageService productImageService;
 
     @PostMapping("/multiple")
-    public ResponseEntity<List<ProductImageResponse>> uploadImages(
+    public ApiResponse<List<ProductImageResponse>> uploadImages(
             @RequestParam("productId") String productId,
             @RequestParam("files") MultipartFile[] files) {
-        List<ProductImageResponse> responses = productImageService.createImages(productId, files);
-        return ResponseEntity.ok(responses);
+        return ApiResponse.<List<ProductImageResponse>>builder()
+                .result(productImageService.createImages(productId, files))
+                .build();
     }
 
     @GetMapping("/by-product/{productId}")
-    public ResponseEntity<List<ProductImageResponse>> getImagesByProductId(@PathVariable String productId) {
-        List<ProductImageResponse> responses = productImageService.getImagesByProductId(productId);
-        return ResponseEntity.ok(responses);
+    public ApiResponse<List<ProductImageResponse>> getImagesByProductId(@PathVariable String productId) {
+        return ApiResponse.<List<ProductImageResponse>>builder()
+                .result(productImageService.getImagesByProductId(productId))
+                .build();
     }
 
     @DeleteMapping("/{imageId}")
@@ -39,15 +40,16 @@ public class ProductImageController {
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> deleteImages(@RequestBody List<String> imageIds) {
+    public ApiResponse<Void> deleteImages(@RequestBody List<String> imageIds) {
         productImageService.deleteImagesByIds(imageIds);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.<Void>builder().message("Delete all image successfully").build();
     }
 
     @PatchMapping("/{id}/set-main")
-    public ResponseEntity<ProductImageResponse> setMainImage(@PathVariable String id) {
-        ProductImageResponse response = productImageService.setMainImage(id);
-        return ResponseEntity.ok(response);
+    public ApiResponse<ProductImageResponse> setMainImage(@PathVariable String id) {
+        return ApiResponse.<ProductImageResponse>builder()
+                .result(productImageService.setMainImage(id))
+                .build();
     }
 
 

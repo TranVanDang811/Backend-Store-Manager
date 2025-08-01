@@ -14,8 +14,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -42,6 +40,8 @@ public class SecurityConfig {
                     corsConfig.addAllowedMethod("*"); // Cho phép tất cả các phương thức
                     corsConfig.addAllowedHeader("*"); // Cho phép tất cả các headers
                     corsConfig.setAllowCredentials(true); // Cho phép gửi thông tin xác thực như cookies
+                    corsConfig.addExposedHeader("Authorization");
+                    corsConfig.addExposedHeader("X-Total-Count");
                     return corsConfig;
                 }))
                 .authorizeHttpRequests(request -> request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
@@ -57,20 +57,7 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
         return httpSecurity.build();
     }
-    @Bean
-    public CorsFilter corsFilter(){
-        CorsConfiguration corsConfiguration=new CorsConfiguration();
-        corsConfiguration.addAllowedOrigin("http://localhost:5173");
-        corsConfiguration.addAllowedMethod("*");
-        corsConfiguration.addAllowedHeader("*");
-        corsConfiguration.setAllowCredentials(true);
 
-
-        UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
-        urlBasedCorsConfigurationSource.registerCorsConfiguration("/**",corsConfiguration);
-
-        return new CorsFilter(urlBasedCorsConfigurationSource);
-    }
 
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {

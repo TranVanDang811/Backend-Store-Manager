@@ -14,10 +14,13 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface AddressMapper {
+    @Mapping(target = "isDefault", source = "default")
     AddressResponse toResponse(Address address);
 
     @Mapping(target = "id", ignore = true) // ID tự động tạo
     @Mapping(target = "user", ignore = true) // Gán sau trong Service
+    @Mapping(target = "phoneNumber", source = "phoneNumber")
+    @Mapping(target = "receiverName", source = "receiverName")
     Address toEntity(AddressAddRequest addressRequest);
 
     @Mapping(target = "id", ignore = true) // Không cập nhật ID

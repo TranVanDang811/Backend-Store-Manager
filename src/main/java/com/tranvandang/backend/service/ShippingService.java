@@ -20,7 +20,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+
 
 @Service
 @RequiredArgsConstructor
@@ -72,7 +73,7 @@ public class ShippingService {
                 .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_NOT_FOUND));
 
         shipping.setStatus(newStatus);
-        shipping.setUpdateAt(new Date());
+        shipping.setUpdateAt(LocalDateTime.now());
 
         return shippingMapper.toResponse(shippingRepository.save(shipping));
     }
@@ -83,7 +84,7 @@ public class ShippingService {
                 .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_NOT_FOUND));
 
         shipping.setTrackingNumber(trackingNumber);
-        shipping.setUpdateAt(new Date());
+        shipping.setUpdateAt(LocalDateTime.now());
 
         return shippingMapper.toResponse(shippingRepository.save(shipping));
     }

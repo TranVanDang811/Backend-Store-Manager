@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -16,7 +17,7 @@ import java.math.BigDecimal;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 public class Payment extends AbstractEntity{
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, unique = true, length = 100)
     String transactionId; // Mã giao dịch riêng (TXN-...)
 
     @Column(nullable = false, precision = 10, scale = 2)
@@ -28,6 +29,11 @@ public class Payment extends AbstractEntity{
     @Enumerated(EnumType.STRING)
     PaymentStatus status; // PENDING, SUCCESS, FAILED
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "processed_by")
+    User processedBy;
+
+    LocalDateTime processedAt;
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)

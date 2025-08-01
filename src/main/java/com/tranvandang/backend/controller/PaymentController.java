@@ -4,11 +4,12 @@ import com.tranvandang.backend.dto.request.ApiResponse;
 import com.tranvandang.backend.dto.request.PaymentRequest;
 import com.tranvandang.backend.dto.response.PaymentResponse;
 import com.tranvandang.backend.service.PaymentService;
-import com.tranvandang.backend.util.PaymentStatus;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,8 @@ import java.util.List;
 public class    PaymentController {
     final PaymentService paymentService;
 
-    /** Tạo thanh toán với phương thức được chọn */
+
+    //Create payment with selected method
     @PostMapping
     ApiResponse<PaymentResponse> createPayment(@RequestBody PaymentRequest request) {
         return ApiResponse.<PaymentResponse>builder()
@@ -30,43 +32,41 @@ public class    PaymentController {
                 .build();
     }
 
-    /** Xác nhận thanh toán qua chuyển khoản ngân hàng */
-    @PostMapping("/confirm-bank-transfer")
-    public ResponseEntity<ApiResponse<String>> confirmBankTransfer(@RequestParam String transactionId) {
-        String message = paymentService.confirmBankTransfer(transactionId).getBody();
-        return ResponseEntity.ok(ApiResponse.<String>builder()
-                .result(message)
-                .build());
+
+    /** Confirm transfer with transactionId */
+    @PostMapping("/confirm/{transactionId}")
+    public ResponseEntity<String> confirmBankTransfer(@PathVariable String transactionId) {
+        return ResponseEntity.ok(paymentService.confirmBankTransfer(transactionId));
     }
 
+    @GetMapping("/qr/{orderId}")
+    public ResponseEntity<byte[]> getPaymentQr(@PathVariable String orderId) {
+        byte[] qrImage = paymentService.getPaymentQrByOrderId(orderId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
+                .body(qrImage);
+    }
 
-    @PatchMapping("/{paymentId}")
-    public ApiResponse<PaymentResponse> changerStatus(
-            @PathVariable String paymentId,
-            @RequestParam PaymentStatus status) {
-        PaymentResponse response = paymentService.changerStatus(paymentId, status);
-
-        return ApiResponse.<PaymentResponse>builder()
-                .result(response)
+    /** Get a list of all payment transactions */
+    @GetMapping
+    public ApiResponse<List<PaymentResponse>> getAllPayments() {
+        return ApiResponse.<List<PaymentResponse>>builder()
+                .result(paymentService.getAllPayments())
                 .build();
     }
 
-    /** Lấy danh sách tất cả các giao dịch thanh toán */
-    @GetMapping
-    public ResponseEntity<List<PaymentResponse>> getAllPayments() {
-        List<PaymentResponse> payments = paymentService.getAllPayments();
-        return ResponseEntity.ok(payments);
-    }
-
-    /** Lấy thông tin thanh toán theo ID */
+    /** Get payment information by ID */
     @GetMapping("/{paymentId}")
-    public ResponseEntity<PaymentResponse> getPaymentById(@PathVariable String paymentId) {
-        PaymentResponse payment = paymentService.getPaymentById(paymentId);
-        return ResponseEntity.ok(payment);
+    public ApiResponse<PaymentResponse> getPaymentById(@PathVariable String paymentId) {
+        return ApiResponse.<PaymentResponse>builder()
+                .result(paymentService.getPaymentById(paymentId))
+                .build();
     }
 
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<PaymentResponse> getPaymentByOrderId(@PathVariable String orderId) {
-        return ResponseEntity.ok(paymentService.getPaymentByOrderId(orderId));
+    public ApiResponse<PaymentResponse> getPaymentByOrderId(@PathVariable String orderId) {
+        return ApiResponse.<PaymentResponse>builder()
+                .result(paymentService.getPaymentByOrderId(orderId))
+                .build();
     }
 }

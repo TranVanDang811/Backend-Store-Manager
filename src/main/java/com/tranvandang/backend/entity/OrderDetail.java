@@ -22,8 +22,9 @@ public class OrderDetail {
     @JoinColumn(name = "order_id", nullable = false)
     Orders order;  // Đơn hàng chứa sản phẩm này
 
-    @Column(nullable = false)
-    String productId;  // ID của sản phẩm
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    Product product;  // ID của sản phẩm
 
     @Column(nullable = false)
     String productName;  // Tên sản phẩm tại thời điểm đặt hàng

@@ -8,6 +8,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AddressUpdateRequest {
     String id;
+    String phoneNumber;
+    String receiverName;
     String street;
     String streetNumber;
     String district;

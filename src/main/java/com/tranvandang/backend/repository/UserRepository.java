@@ -1,6 +1,7 @@
 package com.tranvandang.backend.repository;
 
 
+import com.tranvandang.backend.dto.response.UserResponse;
 import com.tranvandang.backend.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -19,11 +19,11 @@ import com.tranvandang.backend.service.UserService;
 // Enum định nghĩa các trạng thái user
 import com.tranvandang.backend.util.UserStatus;
 
-// Validation và annotation liên quan
+// Validation and annotation
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 
-// Lombok để giảm code boilerplate
+// Lombok
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -31,23 +31,21 @@ import lombok.extern.slf4j.Slf4j;
 
 // Spring web & security
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
-// Controller cho REST API liên quan đến user
-@Slf4j // Lombok: tự động tạo logger
-@RestController // Đánh dấu đây là một REST controller
-@RequestMapping("/users") // Mapping cho tất cả các endpoint bắt đầu bằng /users
-@RequiredArgsConstructor // Lombok: tạo constructor cho các final fields
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true) // Thiết lập mặc định access level là private + final cho các field
+// Controller REST API
+@Slf4j
+@RestController
+@RequestMapping("/users")
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
 
-    UserService userService; // Service xử lý logic chính
+    UserService userService;
 
-    // Tạo user mới
+    // Create new user
     @PostMapping
     ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) {
         return ApiResponse.<UserResponse>builder()
@@ -55,37 +53,41 @@ public class UserController {
                 .build();
     }
 
-    // Lấy danh sách user có phân trang
+    // Get a list of users with pagination
     @GetMapping
     ApiResponse<Page<UserResponse>> getUsers(
-            @RequestParam(defaultValue = "1") int page, // page mặc định là 1
-            @RequestParam(defaultValue = "5") int size) { // size mặc định là 5
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "5") int size) {
 
-        // In ra roles hiện tại từ authentication context
+
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));
 
         return ApiResponse.<Page<UserResponse>>builder()
-                .result(userService.getUsers(page - 1, size)) // trừ 1 vì Spring sử dụng page index từ 0
+                .result(userService.getUsers(page - 1, size))
                 .build();
     }
 
-    // Tìm kiếm user theo keyword (có phân trang)
+    // Search user by keyword (with pagination)
     @GetMapping("/search")
-    public Page<User> searchUsers(
+    ApiResponse<Page<User>> searchUsers(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "5") int size) {
-        return userService.searchUsers(keyword, page - 1, size);
+        return ApiResponse.<Page<User>>builder()
+                .result(userService.searchUsers(keyword, page - 1, size))
+                .build();
     }
 
-    // Lấy thông tin user theo id
+    // Get user information by id
     @GetMapping("/{userId}")
-    UserResponse getUser(@PathVariable("userId") String userId) {
-        return userService.getUser(userId);
+    ApiResponse<UserResponse> getUser(@PathVariable("userId") String userId) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.getUser(userId))
+                .build();
     }
 
-    // Lấy thông tin user đang đăng nhập
+    // Get information of logged in user
     @GetMapping("/myInfo")
     ApiResponse<UserResponse> getMyInfo() {
         return ApiResponse.<UserResponse>builder()
@@ -93,20 +95,22 @@ public class UserController {
                 .build();
     }
 
-    // Cập nhật thông tin user theo id
+    // Update user information by id
     @PutMapping("/{userId}")
-    UserResponse updateUser(@PathVariable String userId, @RequestBody UserUpdateRequest request) {
-        return userService.updateUser(userId, request);
+    ApiResponse<UserResponse> updateUser(@PathVariable String userId, @RequestBody UserUpdateRequest request) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.updateUser(userId, request))
+                .build();
     }
 
-    // Xoá user theo id
+    // Delete user by id
     @DeleteMapping("/{userId}")
-    String deleteUser(@PathVariable String userId) {
+    ApiResponse<Void>deleteUser(@PathVariable String userId) {
         userService.deleteUser(userId);
-        return "User has been deleted";
+        return ApiResponse.<Void>builder().message("Delete successfully").build();
     }
 
-    // Cập nhật trạng thái user (ACTIVE, INACTIVE, NONE, etc.)
+    // Update user status (ACTIVE, INACTIVE, NONE, etc.)
     @PatchMapping("/{userId}")
     public ApiResponse<UserResponse> changerStatus(
             @PathVariable String userId,
@@ -121,15 +125,18 @@ public class UserController {
                 .build();
     }
 
-    // Đổi mật khẩu user theo id
+    // Change user password by id
     @PatchMapping("/{userId}/change-password")
-    public UserResponse changePassword(
+    public ApiResponse<Void> changePassword(
             @PathVariable String userId,
             @RequestBody ChangePasswordRequest request) {
-        return userService.changePassword(userId, request.getOldPassword(), request.getNewPassword());
+        userService.changePassword(userId, request.getOldPassword(), request.getNewPassword());
+        return ApiResponse.<Void>builder()
+                .message("Password updated successfully")
+                .build();
     }
 
-    // Cập nhật role của user (VD: ADMIN, USER,...)
+    // Update user roles (eg: ADMIN, USER,...)
     @PatchMapping("/{userId}/role")
     public ApiResponse<UserResponse> updateRole(
             @PathVariable String userId,
@@ -139,7 +146,7 @@ public class UserController {
                 .build();
     }
 
-    // Kiểm tra username đã tồn tại hay chưa
+    // Check if username already exists
     @GetMapping("/check-username")
     public ApiResponse<Boolean> checkUsername(@RequestParam String username) {
         return ApiResponse.<Boolean>builder()
@@ -147,7 +154,7 @@ public class UserController {
                 .build();
     }
 
-    // Kiểm tra email đã tồn tại hay chưa
+    // Check if email exists
     @GetMapping("/check-email")
     public ApiResponse<Boolean> checkEmail(@RequestParam String email) {
         return ApiResponse.<Boolean>builder()

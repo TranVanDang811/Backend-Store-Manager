@@ -1,5 +1,7 @@
 package com.tranvandang.backend.dto.request;
 
+import com.tranvandang.backend.util.BrandStatus;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -10,5 +12,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BrandRequest {
     String name;
-    String logoUrl;
+    ImagesRequest images;
+    BrandStatus status;
 }

@@ -19,10 +19,15 @@ public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
+    String phoneNumber;
+    String receiverName;
     String street;
     String streetNumber;
     String district;
     String city;
+
+    @Column(nullable = false)
+    boolean isDefault = false;
 
     @ManyToOne
     @JsonIgnore

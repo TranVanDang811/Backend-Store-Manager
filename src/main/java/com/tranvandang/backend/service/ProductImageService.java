@@ -57,42 +57,36 @@ public class ProductImageService {
             throw new AppException(ErrorCode.UPLOAD_FAILED);
         }
 
-        // Lưu tất cả ảnh vào DB
         List<ProductImage> savedImages = productImageRepository.saveAll(imageEntities);
 
-        // Trả về danh sách response
         return savedImages.stream()
                 .map(productImageMapper::toResponse)
                 .toList();
     }
 
     public List<ProductImageResponse> getImagesByProductId(String productId) {
-        // Lấy danh sách ảnh từ repository
         List<ProductImage> images = productImageRepository.findByProductId(productId);
 
-        // Chuyển sang response DTO
         return images.stream()
                 .map(productImageMapper::toResponse)
                 .toList();
     }
 
     public void deleteImageById(String imageId) {
-        // Tìm ảnh theo ID
         ProductImage image = productImageRepository.findById(imageId)
-                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND)); // Xử lý lỗi nếu ảnh không tồn tại
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND));
 
-        // Kiểm tra nếu ảnh là ảnh đại diện (thumbnail) của sản phẩm
         Product product = image.getProduct();
         if (product.getThumbnailUrl() != null && product.getThumbnailUrl().equals(image.getImageUrl())) {
             throw new AppException(ErrorCode.CANNOT_DELETE_THUMBNAIL);
         }
 
-        // Xóa ảnh trên Cloudinary nếu có publicId
+
         if (image.getPublicId() != null && !image.getPublicId().isBlank()) {
             cloudinaryService.deleteImage(image.getPublicId());
         }
 
-        // Xóa ảnh trong DB
+
         productImageRepository.delete(image);
     }
 
@@ -101,7 +95,7 @@ public class ProductImageService {
         List<ProductImage> images = productImageRepository.findAllById(imageIds);
 
         if (images.isEmpty()) {
-            throw new AppException(ErrorCode.RESOURCE_NOT_FOUND); // hoặc tự define lỗi riêng
+            throw new AppException(ErrorCode.RESOURCE_NOT_FOUND);
         }
 
         for (ProductImage image : images) {
@@ -115,17 +109,17 @@ public class ProductImageService {
 
     @Transactional
     public ProductImageResponse setMainImage(String imageId) {
-        // Tìm ảnh theo ID
+
         ProductImage image = productImageRepository.findById(imageId)
                 .orElseThrow(() -> new RuntimeException("Image not found"));
 
-        // Lấy product tương ứng và cập nhật thumbnail
+
         Product product = image.getProduct();
         product.setThumbnailUrl(image.getImageUrl());
 
         productRepository.save(product);
 
-        // Trả response cho client
+
         return productImageMapper.toResponse(image);
     }
 

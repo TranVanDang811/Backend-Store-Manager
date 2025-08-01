@@ -9,8 +9,11 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AddressResponse {
+    String phoneNumber;
+    String receiverName;
     String street;
     String streetNumber;
     String district;
     String city;
+    boolean isDefault;
 }

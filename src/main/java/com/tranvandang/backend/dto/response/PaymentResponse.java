@@ -5,6 +5,9 @@ import com.tranvandang.backend.util.PaymentStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -12,9 +15,13 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PaymentResponse {
     String id;
-    String orderId;
-    Double amount;
+    String transactionId;
+    BigDecimal amount;
     PaymentMethod paymentMethod;
     PaymentStatus status;
-    String transactionId;
+    String processedBy;
+    LocalDateTime processedAt;
+    String orderId;
+    LocalDateTime createdAt;
+    LocalDateTime updateAt;
 }

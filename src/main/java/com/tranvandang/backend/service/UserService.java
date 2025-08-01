@@ -54,7 +54,6 @@ public class UserService {
         User user = userMapper.toUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        // Gán user cho mỗi address
         if (user.getAddresses() != null) {
             User finalUser = user;
             user.getAddresses().forEach(address -> address.setUser(finalUser));
@@ -76,23 +75,20 @@ public class UserService {
 
     @PostAuthorize("hasRole('ADMIN') or returnObject.username == authentication.name")
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
-        // Lấy thông tin người dùng từ SecurityContextHolder
         var authentication = SecurityContextHolder.getContext().getAuthentication();
 
         User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        // Kiểm tra nếu người dùng đang cố gắng sửa chính họ
-        if (!user.getUsername().equals(authentication.getName()) && !authentication.getAuthorities().stream().anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"))) {
-            throw new AppException(ErrorCode.FORBIDDEN);  // Nếu không phải ADMIN hoặc chính mình, từ chối
+        if (!user.getUsername().equals(authentication.getName()) &&
+                authentication.getAuthorities().stream().noneMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"))) {
+            throw new AppException(ErrorCode.FORBIDDEN);
         }
 
-        // Cập nhật thông tin người dùng từ request
+
+
         userMapper.updateUser(user, request);
 
-        // Mã hóa lại mật khẩu nếu có thay đổi mật khẩu
-        if (request.getPassword() != null) {
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
-        }
+
 
 
         return userMapper.toUserResponse(userRepository.save(user));
@@ -118,8 +114,6 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
-
-
     @PreAuthorize("hasRole('ADMIN')")
     public Page<UserResponse> getUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -141,7 +135,9 @@ public class UserService {
 
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(String userId) {
-        userRepository.deleteById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        userRepository.delete(user);
     }
 
 
@@ -151,24 +147,28 @@ public class UserService {
         return user.getUsername().equals(authenticatedUsername);
     }
 
-    @PostAuthorize("hasRole('ADMIN') or returnObject.username == authentication.name")
-    public UserResponse changePassword(String userId, String oldPassword, String newPassword) {
+    public void changePassword(String userId, String oldPassword, String newPassword) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        // Kiểm tra nếu yêu cầu là thay đổi mật khẩu của chính mình, kiểm tra mật khẩu cũ
-        if (user.getUsername().equals(authentication.getName())) {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        boolean isSelf = user.getUsername().equals(currentUsername);
+        boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                .stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        if (isSelf) {
             if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
                 throw new AppException(ErrorCode.INVALID_PASSWORD);
             }
+        } else if (!isAdmin) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // Mã hóa mật khẩu mới và lưu
         user.setPassword(passwordEncoder.encode(newPassword));
-
-        return userMapper.toUserResponse(userRepository.save(user));
+        userRepository.save(user);
     }
+
 
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional

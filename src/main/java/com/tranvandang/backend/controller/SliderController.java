@@ -2,11 +2,18 @@ package com.tranvandang.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tranvandang.backend.dto.request.ApiResponse;
+import com.tranvandang.backend.dto.request.ProductUpdateRequest;
 import com.tranvandang.backend.dto.request.SliderRequest;
+import com.tranvandang.backend.dto.request.UpdateSliderRequest;
+import com.tranvandang.backend.dto.response.ProductResponse;
 import com.tranvandang.backend.dto.response.SliderResponse;
+import com.tranvandang.backend.dto.response.SupplierResponse;
+import com.tranvandang.backend.dto.response.UserResponse;
 import com.tranvandang.backend.exception.AppException;
 import com.tranvandang.backend.exception.ErrorCode;
 import com.tranvandang.backend.service.SliderService;
+import com.tranvandang.backend.util.ChangerStatus;
+import com.tranvandang.backend.util.UserStatus;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -26,21 +33,30 @@ public class SliderController {
     SliderService sliderService;
 
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    // API nhận request POST với dữ liệu dạng multipart/form-data
-    public ApiResponse<SliderResponse> createBrand(
-            @RequestPart("slider") String sliderJson,  // Nhận JSON dưới dạng String từ request
-            @RequestPart(value = "images", required = false) MultipartFile images) {  // Nhận danh sách ảnh (nếu có)
-        ObjectMapper objectMapper = new ObjectMapper();  // Khởi tạo ObjectMapper để chuyển đổi JSON thành object Java
+    public ApiResponse<SliderResponse> create(
+            @RequestPart("slider") String sliderJson,
+            @RequestPart(value = "images", required = false) MultipartFile images) {
+        ObjectMapper objectMapper = new ObjectMapper();
         SliderRequest sliderRequest;
         try {
-            sliderRequest = objectMapper.readValue(sliderJson, SliderRequest.class);  // Chuyển JSON thành object BrandRequest
+            sliderRequest = objectMapper.readValue(sliderJson, SliderRequest.class);
         } catch (Exception e) {
-            throw new AppException(ErrorCode.INVALID_JSON);  // Ném lỗi khi parse JSON thất bại
+            throw new AppException(ErrorCode.INVALID_JSON);
         }
-        return ApiResponse.<SliderResponse>builder()  // Trả về API response dạng generic
-                .result(sliderService.create(sliderRequest, images))  // Gọi service để tạo và nhận kết quả
+        return ApiResponse.<SliderResponse>builder()
+                .result(sliderService.create(sliderRequest, images))
                 .build();
     }
+
+
+    @PutMapping("/{sliderId}")
+    ApiResponse<SliderResponse> updateSlider(@PathVariable String sliderId, @RequestBody UpdateSliderRequest request) {
+        return ApiResponse.<SliderResponse>builder()
+                .result(sliderService.updateSlider(sliderId, request))
+                .build();
+    }
+
+
 
     @GetMapping
     ApiResponse<List<SliderResponse>> getAll() {
@@ -49,9 +65,30 @@ public class SliderController {
                 .build();
     }
 
+    @GetMapping("/{id}")
+    ApiResponse<SliderResponse> getById(@PathVariable String id) {
+        return ApiResponse.<SliderResponse>builder().result(sliderService.getById(id)).build();
+    }
+
+
+    @PatchMapping("/{sliderId}")
+    public ApiResponse<SliderResponse> changerStatus(
+            @PathVariable String sliderId,
+            @RequestParam ChangerStatus status) {
+
+        log.info("Request changer slider status, sliderId = {}", sliderId);
+
+        SliderResponse response = sliderService.changerStatus(sliderId, status);
+
+        return ApiResponse.<SliderResponse>builder()
+                .result(response)
+                .build();
+    }
+
     @DeleteMapping("/{slider}")
     ApiResponse<Void> delete(@PathVariable String slider) {
         sliderService.delete(slider);
-        return ApiResponse.<Void>builder().build();
+        return ApiResponse.<Void>builder().message("Delete successfully").build();
+
     }
 }

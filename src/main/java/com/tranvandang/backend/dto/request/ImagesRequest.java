@@ -1,0 +1,15 @@
+package com.tranvandang.backend.dto.request;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class ImagesRequest {
+    String imageUrl;
+    String sliderId;
+    String brandId;
+}

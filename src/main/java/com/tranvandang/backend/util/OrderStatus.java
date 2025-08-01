@@ -9,8 +9,6 @@ public enum OrderStatus {
     @JsonProperty("processing")
     PROCESSING,
 
-    @JsonProperty("shipped")
-    SHIPPED,
 
     @JsonProperty("delivered")
     DELIVERED,

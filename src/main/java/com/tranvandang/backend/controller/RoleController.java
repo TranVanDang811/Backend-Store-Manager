@@ -34,6 +34,11 @@ public class RoleController {
                 .result(roleService.getAll())
                 .build();
     }
+    
+    @GetMapping("/{id}")
+    ApiResponse<RoleResponse> getById(@PathVariable String id) {
+        return ApiResponse.<RoleResponse>builder().result(roleService.getById(id)).build();
+    }
 
     @DeleteMapping("/{role}")
     ApiResponse<Void> delete(@PathVariable String role) {

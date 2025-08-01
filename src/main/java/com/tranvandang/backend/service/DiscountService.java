@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -90,6 +90,28 @@ public class DiscountService {
                 .map(discountMapper::toDiscountResponse)
                 .toList(); // Replaced collect with toList()
     }
+
+    public List<DiscountResponse> getActiveDiscounts() {
+        return discountRepository.findAll()
+                .stream()
+                .filter(Discount::isActive)
+                .map(discountMapper::toDiscountResponse)
+                .toList();
+    }
+
+    public DiscountResponse getByCode(String code) {
+        Discount discount = discountRepository.findByCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Coupon code does not exist: " + code));
+
+        // Kiểm tra ngày hết hạn
+        LocalDateTime now = LocalDateTime.now();
+        if (discount.getStartDate().isAfter(now) || discount.getEndDate().isBefore(now)) {
+            throw new ResourceNotFoundException("The coupon code has expired or is not yet valid.");
+        }
+
+        return discountMapper.toDiscountResponse(discount);
+    }
+
 }
 
 

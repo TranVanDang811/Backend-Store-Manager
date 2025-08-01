@@ -24,6 +24,8 @@ public class ImportOrder {
 
     LocalDateTime importDate;
 
+    LocalDateTime importUpdateDate;
+
     String note;
 
     @Enumerated(EnumType.STRING)

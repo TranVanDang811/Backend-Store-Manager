@@ -12,6 +12,6 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderRequest {
     String userId;
-    String discountCode;
+        String discountCode;
     List<OrderDetailRequest> orderDetails;
 }

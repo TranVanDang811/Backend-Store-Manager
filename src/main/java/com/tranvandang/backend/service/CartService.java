@@ -70,14 +70,23 @@ public class CartService {
 
     public CartResponse getCartByUserId(String userId) {
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
         return CartMapper.INSTANCE.toResponse(cart);
+    }
+
+    @Transactional
+    public void clearCart(String userId) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
+
+        cart.getCartItems().clear();
+        cartRepository.save(cart);
     }
 
     @Transactional
     public void removeItemFromCart(String userId, String productId) {
         Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
 
         boolean removed = cart.getCartItems().removeIf(item -> item.getProduct().getId().equals(productId));
 
